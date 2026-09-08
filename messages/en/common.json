@@ -1,0 +1,74 @@
+{
+  "app": {
+    "name": "English Learning Platform",
+    "tagline": "Learn English from A1 to C2 — at your own pace"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "levels": "Levels",
+    "reviews": "Reviews",
+    "tutor": "Tutor",
+    "shop": "Shop",
+    "settings": "Settings",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "dob": "Date of birth (optional)",
+    "gender": "Gender (optional)",
+    "loginTitle": "Welcome back",
+    "registerTitle": "Create your account",
+    "loginCta": "Log in",
+    "registerCta": "Sign up",
+    "noAccount": "No account yet?",
+    "hasAccount": "Already have an account?",
+    "forgotPassword": "Forgot password?",
+    "errorInvalid": "Invalid email or password",
+    "errorExists": "An account with this email already exists"
+  },
+  "levels": {
+    "A1": "Beginner (A1)",
+    "A2": "Elementary (A2)",
+    "B1": "Intermediate (B1)",
+    "B2": "Upper Intermediate (B2)",
+    "C1": "Advanced (C1)",
+    "C2": "Mastery (C2)"
+  },
+  "settings": {
+    "title": "Settings",
+    "navigationMode": "Navigation mode",
+    "linear": "Linear (guided)",
+    "free": "Free (browse all)",
+    "progressionMode": "Progression",
+    "unlocked": "Unlocked (browse all levels)",
+    "locked": "Locked (must pass to advance)",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "locale": "Language"
+  },
+  "exercise": {
+    "submit": "Submit",
+    "retry": "Try again",
+    "correct": "Correct!",
+    "incorrect": "Not quite — try again",
+    "score": "Score",
+    "feedback": "Feedback"
+  },
+  "gamification": {
+    "xp": "XP",
+    "level": "Level",
+    "streak": "Streak",
+    "badges": "Badges"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "offline": "You are offline",
+    "comingSoon": "Coming soon"
+  }
+}

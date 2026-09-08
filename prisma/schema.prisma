@@ -1,0 +1,260 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum CefrLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+enum NavigationMode {
+  linear
+  free
+}
+
+enum ProgressionMode {
+  unlocked
+  locked
+}
+
+enum ExerciseType {
+  fill_blanks
+  ordering
+  transformation
+  flashcard
+  matching
+  listening_tts
+  dictation
+  comprehension
+  graded_reading
+  writing_prompt
+  speaking_record
+  shadowing
+  pronunciation
+}
+
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  name      String
+  dob       DateTime? @db.Date
+  gender    String?
+  role      String   @default("student")
+  locale    String   @default("en")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  preferences UserPreferences?
+  attempts    Attempt[]
+  progress    Progress[]
+  streak      UserStreak?
+  badges      UserBadge[]
+  inventory   UserInventory[]
+
+  @@map("users")
+}
+
+model UserPreferences {
+  userId             String         @id @map("user_id") @db.Uuid
+  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  navigationMode     NavigationMode @default(free) @map("navigation_mode")
+  progressionMode    ProgressionMode @default(unlocked) @map("progression_mode")
+  locale             String         @default("en")
+  theme              String         @default("light")
+  srsEnabled         Boolean        @default(true) @map("srs_enabled")
+  emailNotifications Boolean        @default(false) @map("email_notifications")
+
+  @@map("user_preferences")
+}
+
+model Level {
+  id          String    @id @default(uuid()) @db.Uuid
+  code        CefrLevel @unique
+  title       String
+  description String
+  orderIndex  Int       @map("order_index")
+  units       Unit[]
+
+  @@map("levels")
+}
+
+model Unit {
+  id          String   @id @default(uuid()) @db.Uuid
+  levelId     String   @map("level_id") @db.Uuid
+  level       Level    @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  orderIndex  Int      @map("order_index")
+  coverImage  String?  @map("cover_image")
+  lessons     Lesson[]
+
+  @@unique([levelId, orderIndex])
+  @@index([levelId])
+  @@map("units")
+}
+
+model Lesson {
+  id               String     @id @default(uuid()) @db.Uuid
+  unitId           String     @map("unit_id") @db.Uuid
+  unit             Unit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  title            String
+  objectives       String
+  orderIndex       Int        @map("order_index")
+  estimatedMinutes Int        @default(10) @map("estimated_minutes")
+  isQuiz           Boolean    @default(false) @map("is_quiz")
+  isExam           Boolean    @default(false) @map("is_exam")
+  exercises        Exercise[]
+  progress         Progress[]
+
+  @@unique([unitId, orderIndex])
+  @@index([unitId])
+  @@map("lessons")
+}
+
+model Exercise {
+  id          String       @id @default(uuid()) @db.Uuid
+  lessonId    String       @map("lesson_id") @db.Uuid
+  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type        ExerciseType
+  difficulty  Int          @default(2)
+  prompt      Json
+  solution    Json
+  assets      Json?
+  aiGenerated Boolean      @default(false) @map("ai_generated")
+  version     Int          @default(1)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  attempts    Attempt[]
+
+  @@index([lessonId, type])
+  @@map("exercises")
+}
+
+model Attempt {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseId  String   @map("exercise_id") @db.Uuid
+  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  answer      Json
+  score       Decimal  @db.Decimal(5, 2)
+  feedback    Json?
+  timeSpentMs Int      @map("time_spent_ms")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId, exerciseId, createdAt])
+  @@map("attempts")
+}
+
+model Progress {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String    @map("lesson_id") @db.Uuid
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status      String    @default("not_started")
+  bestScore   Decimal?  @map("best_score") @db.Decimal(5, 2)
+  completedAt DateTime? @map("completed_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, lessonId])
+  @@map("progress")
+}
+
+model UserStreak {
+  userId           String   @id @map("user_id") @db.Uuid
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentStreak    Int      @default(0) @map("current_streak")
+  longestStreak    Int      @default(0) @map("longest_streak")
+  lastActivityDate DateTime? @map("last_activity_date") @db.Date
+  freezeCount      Int      @default(0) @map("freeze_count")
+  xp               Int      @default(0)
+
+  @@map("user_streaks")
+}
+
+model Badge {
+  id          String      @id @default(uuid()) @db.Uuid
+  code        String      @unique
+  title       String
+  description String
+  icon        String      @default("🏆")
+  rule        Json?
+  users       UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  userId   String   @map("user_id") @db.Uuid
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId  String   @map("badge_id") @db.Uuid
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt DateTime @default(now()) @map("earned_at")
+
+  @@id([userId, badgeId])
+  @@map("user_badges")
+}
+
+model ShopItem {
+  id            String          @id @default(uuid()) @db.Uuid
+  title         String
+  description   String          @default("")
+  priceXp       Int             @map("price_xp")
+  cosmeticType  String          @map("cosmetic_type")
+  assetUrl      String?         @map("asset_url")
+  rarity        String          @default("common")
+  inventory     UserInventory[]
+
+  @@map("shop_items")
+}
+
+model UserInventory {
+  userId     String   @map("user_id") @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopItemId String   @map("shop_item_id") @db.Uuid
+  shopItem   ShopItem @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
+  purchasedAt DateTime @default(now()) @map("purchased_at")
+
+  @@id([userId, shopItemId])
+  @@map("user_inventory")
+}
+
+model PlacementTest {
+  id        String              @id @default(uuid()) @db.Uuid
+  title     String
+  isActive  Boolean             @default(true) @map("is_active")
+  questions PlacementQuestion[]
+
+  @@map("placement_tests")
+}
+
+model PlacementQuestion {
+  id        String        @id @default(uuid()) @db.Uuid
+  testId    String        @map("test_id") @db.Uuid
+  test      PlacementTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  levelHint CefrLevel     @map("level_hint")
+  prompt    Json
+  solution  Json
+  weight    Int           @default(1)
+
+  @@map("placement_questions")
+}
+
+model PlacementAttempt {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  testId           String   @map("test_id") @db.Uuid
+  score            Decimal  @db.Decimal(5, 2)
+  recommendedLevel String   @map("recommended_level")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("placement_attempts")
+}

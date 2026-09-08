@@ -1,0 +1,74 @@
+{
+  "app": {
+    "name": "Plataforma de Inglés",
+    "tagline": "Aprende inglés de A1 a C2 — a tu ritmo"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "levels": "Niveles",
+    "reviews": "Repasos",
+    "tutor": "Tutor",
+    "shop": "Tienda",
+    "settings": "Ajustes",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión"
+  },
+  "auth": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "name": "Nombre completo",
+    "dob": "Fecha de nacimiento (opcional)",
+    "gender": "Género (opcional)",
+    "loginTitle": "Bienvenido de nuevo",
+    "registerTitle": "Crea tu cuenta",
+    "loginCta": "Iniciar sesión",
+    "registerCta": "Registrarse",
+    "noAccount": "¿Aún no tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "errorInvalid": "Correo o contraseña inválidos",
+    "errorExists": "Ya existe una cuenta con ese correo"
+  },
+  "levels": {
+    "A1": "Principiante (A1)",
+    "A2": "Elemental (A2)",
+    "B1": "Intermedio (B1)",
+    "B2": "Intermedio Alto (B2)",
+    "C1": "Avanzado (C1)",
+    "C2": "Dominio (C2)"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "navigationMode": "Modo de navegación",
+    "linear": "Lineal (guiado)",
+    "free": "Libre (explorar todo)",
+    "progressionMode": "Progresión",
+    "unlocked": "Desbloqueado (ver todos los niveles)",
+    "locked": "Bloqueado (aprobar para avanzar)",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "locale": "Idioma"
+  },
+  "exercise": {
+    "submit": "Enviar",
+    "retry": "Intentar de nuevo",
+    "correct": "¡Correcto!",
+    "incorrect": "No del todo — intenta de nuevo",
+    "score": "Puntaje",
+    "feedback": "Comentario"
+  },
+  "gamification": {
+    "xp": "XP",
+    "level": "Nivel",
+    "streak": "Racha",
+    "badges": "Insignias"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "offline": "Estás sin conexión",
+    "comingSoon": "Próximamente"
+  }
+}
