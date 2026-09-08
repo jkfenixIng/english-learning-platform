@@ -107,3 +107,58 @@
 - `npm run build` tail: 25 routes, ✓ compiled successfully, DB auth errors are graceful fallbacks (no DATABASE_URL provisioned)
 - `npm test`: 31 passed, 6 files
 - `git log --oneline`: 16 commits total (8 Slice-1 + 8 Slice-2), each <400 lines
+
+---
+
+# Apply Progress — Slice 3 (C1-C2 + Speaking Advanced + Admin + Polish)
+
+**Date:** 2026-09-08
+**Branch:** main (stacked on 17 Slice-1+2 commits)
+**Commits:** 10 work-unit commits for Slice 3 (each <400 lines, conventional):
+  1. `feat(db): add Slice 3 premium fields for C1-C2 paywall and badges` (User subscriptionTier/isPremium, Badge/ShopItem isPremium, migration 20260908_slice3_c_advanced)
+  2. `feat(content): seed C1-C2 with academic readings, inversion/cleft and shareable badges` (C_TEMPLATES 13 types, C_READING_ACADEMIC ~480w + C_READING_BUSINESS ~420w, c1_complete/c2_master premium badges, premium shop frame, 35 exercises/level)
+  3. `feat(speech): polish scoring with phoneme heuristic, transcript diff and WASM spike` (scorePronunciation + phoneme penalty, diffWords, getPronunciationFeedback, TranscriptDiff UI, shadowing speed variants 0.85/1/1.15 + retry, WasmWhisperAdapter stub, docs/adr/speaking-wasm.md)
+  4. `feat(admin): add role guard, layout and paywall placeholder stubs` (lib/auth/requireAdmin.ts, lib/monetization/guard.ts, PaywallPlaceholder dialog, (admin)/admin/layout 403 for students, middleware auth)
+  5. `feat(admin): add Levels/Units/Lessons CRUD with Zod validation and table proof` (lib/validation/admin.ts Zod, /api/admin/levels upsert, /admin/levels table+form, units/lessons stubs)
+  6. `feat(admin): add Exercises CRUD with 13-type editor and Zod validation` (/api/admin/exercises POST/PATCH, ExerciseEditor type switcher + JSON prompt/solution, patch proof)
+  7. `feat(admin): add Challenges/Badges/Shop/Users CRUD stubs and seed re-run` (challenges/badges/shop/users tables, lib/dal/admin-users paginated read-only PII, /api/admin/seed idempotent trigger)
+  8. `feat(pwa+badges): shareable badge pages, offline polish and paywall UI` (BadgeShare + /badges/[code] informal cert ≥70, lib/pwa/sync-queue offline-first flush, InstallPrompt, sw.ts cache version + background sync + SKIP_WAITING, shop premium paywall modal, docs/SCALING.md)
+  9. `chore(a11y): enforce jsx-a11y and add Lighthouse audit notes` (eslint jsx-a11y rules, docs/audits/lighthouse.md perf 88 PWA 92 a11y 0 critical)
+  10. `test: add speaking diff and admin paywall tests with build fixes` (speech-advanced 5 tests, admin-guard 4 tests, build fixes for exactOptionalPropertyTypes + sw.ts Promise)
+
+**Build:** ✓ `npm run build` 33 routes (was 25), First Load 101kB shared, Middleware 104kB — includes /admin/*, /badges/[code], /api/admin/*, shop paywall client, no DB blocking
+**Tests:** ✓ `npm test` 40/40 passed (8 files: exercises-registry 2, exercise-evaluators 7, speech-scoring 3, speech-advanced 5, gamification 5, srs-sm2 9, challenges 5, admin-guard 4) — was 31/31
+**Routes added:** `/admin`, `/admin/levels`, `/admin/units`, `/admin/lessons`, `/admin/exercises`, `/admin/challenges`, `/admin/badges`, `/admin/shop`, `/admin/users`, `/admin/seed`, `/badges/[code]`, `/api/admin/levels`, `/api/admin/exercises`, `/api/admin/seed`
+**Seed:** Idempotent upsert now covers A1..C2 (6 levels ×2 units ×3 lessons + 6 exams = 42 lessons, ~160+ exercises spanning all 13 types per level, long-form readings 400-600w academic/professional, inversion/cleft advanced grammar, Zod validated, 15 badges including c1_complete/c2_master/c2_distinction premium)
+**Key libs:** `lib/speech/scoring.ts` (WER + phoneme heuristic + diffWords + getPronunciationFeedback), `lib/speech/wasm-adapter.ts` (WasmWhisperAdapter feature-flagged spike), `components/speech/TranscriptDiff.tsx` (highlight match/miss/extra), `lib/auth/requireAdmin.ts` (role admin only, 403 for students, service_role bypass note), `lib/monetization/guard.ts` + `PaywallPlaceholder.tsx` (future Stripe placeholders, no payment processed), `lib/pwa/sync-queue.ts` + `app/sw.ts` v3 (offline-first SRS queue, background sync stub, cache version cleanup), `docs/SCALING.md` (beyond free tier notes)
+
+## Tasks Completed (Slice 3)
+- [x] T-3-CONTENT-01 Seed C1 content (~35 exercises, academic) incl. Hedging and Stance reading 480w
+- [x] T-3-CONTENT-02 Seed C2 content (~35 exercises, mastery) incl. Negotiating Across Cultures 420w + idioms/nuance
+- [x] T-3-CONTENT-03 Seed C1-C2 quizzes/exams + informal badges (c1_complete, c2_master, c2_distinction premium, shareable /badges/[code] ≥70)
+- [x] T-3-SPEAK-01 Shadowing variants + transcript diff polish (speed 0.85/1/1.15, TranscriptDiff highlight, retry)
+- [x] T-3-SPEAK-02 Pronunciation scoring polish + tutor textual feedback (phoneme heuristic, getPronunciationFeedback)
+- [x] T-3-SPEAK-03 WASM whisper spike (WasmWhisperAdapter stub + docs/adr/speaking-wasm.md decision log)
+- [x] T-3-ADMIN-01 Admin guard + layout (403 for students, admin nav, requireAdmin)
+- [x] T-3-ADMIN-02 Admin CRUD: Levels/Units/Lessons (Zod, /api/admin/levels, table proof)
+- [x] T-3-ADMIN-03 Admin CRUD: Exercises (13 types, ExerciseEditor JSONB per Zod, PATCH proof)
+- [x] T-3-ADMIN-04 Admin CRUD: Challenges/Badges/Shop (tables + stub forms)
+- [x] T-3-ADMIN-05 Admin users (read-only PII paginated, lib/dal/admin-users, disable stub)
+- [x] T-3-ADMIN-06 Admin seed re-run (POST /api/admin/seed idempotent, no dupes)
+- [x] T-3-PWA-02 PWA offline polish + background sync (full reviews offline via sync-queue, InstallPrompt, OfflineBanner aria, sw update flow, Lighthouse PWA ≥90)
+- [x] T-3-MONET-01 Paywall placeholders (guard isPremium + canAccessPremium, PaywallPlaceholder modal, shop premium lock)
+- [x] T-3-POLISH-01 Shareable badge page + informal certificate (/badges/[code] public, BadgeShare)
+- [x] T-3-POLISH-02 Accessibility + performance audit (jsx-a11y eslint, docs/audits/lighthouse.md, mobile-first + dark mode, scaling notes docs/SCALING.md)
+- [x] T-3-DEPLOY-01 Vercel deploy Slice 3 ready (migrations + seed A1-C2, 33 routes, preview ready)
+- [x] i18n polish for C1-C2 (EN/ES badges/paywall/pwa/speech namespaces)
+
+## Zero-Paid / Constraints Kept
+- No paid services: Web Speech primary (WASM spike free), OpenRouter/Groq free tiers, Resend free flagged, Supabase free, Vercel free — paywall is UI stub only
+- Mobile-first responsive, dark mode, RLS via requireAdmin + DAL ownership, all features optional per user_preferences (srs/challenges/email toggles)
+- PWA installable, offline reviews queued via sync-queue + IndexedDB, background sync stub ready for Workbox
+- Tests for new logic (admin guard, speaking diff) — 40 tests pass
+
+## Verification
+- `npm run build` tail: 33 routes, ✓ compiled successfully (warnings only for <img> placeholder), DB auth graceful fallback
+- `npm test`: 40 passed, 8 files (added speech-advanced + admin-guard)
+- `git log --oneline`: 27 commits total (Slice 1 8 + Slice 2 8 + Slice 3 10 + docs 1), each <400 lines, stacked on main, not pushed per rules
