@@ -9,7 +9,7 @@ export function ListeningTtsRenderer({ prompt, onSubmit }: { prompt: ListeningTt
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <button onClick={play} className="rounded bg-indigo-600 px-4 py-2 text-white">▶ Play</button>
+        <button onClick={play} className="rounded bg-primary px-4 py-2 text-white">▶ Play</button>
         <button onClick={stopSpeaking} className="rounded border px-3 py-2 text-sm">Stop</button>
         <select value={rate} onChange={(e) => setRate(Number(e.target.value))} className="rounded border px-2 py-1 text-sm">
           <option value={0.75}>0.75x</option><option value={1}>1x</option><option value={1.25}>1.25x</option>
@@ -22,7 +22,7 @@ export function ListeningTtsRenderer({ prompt, onSubmit }: { prompt: ListeningTt
       ) : (
         <input value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Your answer" className="w-full rounded border px-3 py-2" />
       )}
-      <button onClick={() => onSubmit({ answer })} className="rounded bg-indigo-600 px-4 py-2 text-white">Submit</button>
+      <button onClick={() => onSubmit({ answer })} className="rounded bg-primary px-4 py-2 text-white">Submit</button>
     </div>
   );
 }

@@ -14,7 +14,7 @@ export function ComprehensionRenderer({ prompt, onSubmit }: { prompt: Comprehens
           </label>
         ))}
       </div>
-      <button onClick={() => onSubmit({ answer })} className="rounded bg-indigo-600 px-4 py-2 text-white">Submit</button>
+      <button onClick={() => onSubmit({ answer })} className="rounded bg-primary px-4 py-2 text-white">Submit</button>
     </div>
   );
 }

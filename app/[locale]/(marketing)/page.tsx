@@ -2,11 +2,13 @@ import Link from "next/link";
 
 export default function MarketingPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-violet-700 px-6 py-16 text-white">
-      <div className="max-w-2xl text-center">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          English Learning Platform
-        </h1>
+    <main className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-700 px-6 py-16 text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-transparent to-violet-600/20"
+      />
+      <div className="relative z-10 max-w-2xl text-center">
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">English Learning Platform</h1>
         <p className="mt-4 text-lg text-indigo-100">
           Learn English from A1 to C2 — at your own pace. All 6 CEFR levels, AI tutor, speaking
           practice, and gamification.

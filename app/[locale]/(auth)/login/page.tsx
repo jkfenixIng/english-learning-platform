@@ -27,7 +27,7 @@ export default function LoginPage() {
       <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" required className="mb-3 w-full rounded border px-3 py-2" />
       <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" required className="mb-3 w-full rounded border px-3 py-2" />
       {msg ? <p className="mb-3 text-sm text-red-600">{msg}</p> : null}
-      <button disabled={loading} className="w-full rounded bg-indigo-600 py-2 text-white disabled:opacity-50">{loading ? "..." : "Log in"}</button>
+      <button disabled={loading} className="w-full rounded bg-primary py-2 text-white disabled:opacity-50">{loading ? "..." : "Log in"}</button>
       <p className="mt-3 text-center text-sm"><Link href="/register" className="text-indigo-600">No account? Sign up</Link></p>
     </form>
   );

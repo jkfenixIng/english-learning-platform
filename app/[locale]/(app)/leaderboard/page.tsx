@@ -18,13 +18,13 @@ export default async function LeaderboardPage({
       <div className="flex gap-2 text-sm">
         <Link
           href="/leaderboard?window=all_time"
-          className={`rounded px-3 py-1 ${windowVal === "all_time" ? "bg-indigo-600 text-white" : "border"}`}
+          className={`rounded px-3 py-1 ${windowVal === "all_time" ? "bg-primary text-white" : "border"}`}
         >
           All time
         </Link>
         <Link
           href="/leaderboard?window=weekly"
-          className={`rounded px-3 py-1 ${windowVal === "weekly" ? "bg-indigo-600 text-white" : "border"}`}
+          className={`rounded px-3 py-1 ${windowVal === "weekly" ? "bg-primary text-white" : "border"}`}
         >
           Weekly
         </Link>

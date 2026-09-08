@@ -11,7 +11,7 @@ export function WritingPromptRenderer({ prompt, onSubmit }: { prompt: WritingPro
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={6} placeholder="Write your answer..." className="w-full rounded border px-3 py-2 text-sm" />
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500">{words} words</span>
-        <button onClick={() => onSubmit({ text })} className="rounded bg-indigo-600 px-4 py-2 text-white">Submit for correction</button>
+        <button onClick={() => onSubmit({ text })} className="rounded bg-primary px-4 py-2 text-white">Submit for correction</button>
       </div>
     </div>
   );

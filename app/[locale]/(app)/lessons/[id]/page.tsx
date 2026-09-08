@@ -16,7 +16,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
         {lesson.exercises.map((ex, idx) => (
           <Link key={ex.id} href={`/exercises/${ex.id}`} className="flex items-center justify-between rounded border bg-white p-3 hover:bg-gray-50 dark:bg-gray-900">
             <span className="text-sm">#{idx + 1} {ex.type} (difficulty {ex.difficulty})</span>
-            <span className="rounded bg-indigo-600 px-3 py-1 text-xs text-white">Practice</span>
+            <span className="rounded bg-primary px-3 py-1 text-xs text-white">Practice</span>
           </Link>
         ))}
         {lesson.exercises.length === 0 ? <p className="text-sm text-gray-500">No exercises yet.</p> : null}

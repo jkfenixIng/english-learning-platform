@@ -21,7 +21,7 @@ export function MatchingRenderer({ prompt, onSubmit }: { prompt: MatchingPrompt;
           ))}
         </div>
       </div>
-      <button onClick={() => onSubmit({ matches })} className="rounded bg-indigo-600 px-4 py-2 text-white">Submit</button>
+      <button onClick={() => onSubmit({ matches })} className="rounded bg-primary px-4 py-2 text-white">Submit</button>
       <button onClick={() => setMatches({})} className="ml-2 rounded border px-4 py-2 text-sm">Clear</button>
     </div>
   );

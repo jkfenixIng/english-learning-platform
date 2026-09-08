@@ -51,7 +51,7 @@ export default async function AdminLevelsPage() {
           </label>
         </div>
         <p className="mt-2 text-xs text-gray-500">Submits to <code>POST /api/admin/levels</code> — Zod-validated, admin-guarded, idempotent upsert. Edit/delete stub via same endpoint.</p>
-        <button type="submit" className="mt-3 rounded bg-indigo-600 px-4 py-2 text-sm text-white">Create / Upsert</button>
+        <button type="submit" className="mt-3 rounded bg-primary px-4 py-2 text-sm text-white">Create / Upsert</button>
       </form>
 
       <div className="rounded bg-gray-50 p-4 text-xs dark:bg-gray-900">

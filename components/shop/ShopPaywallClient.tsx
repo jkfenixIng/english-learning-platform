@@ -20,7 +20,7 @@ export function ShopPaywallClient({ items }: { items: Item[] }) {
             ) : (
               <form action="/api/shop/purchase" method="post">
                 <input type="hidden" name="shopItemId" value={it.id} />
-                <button type="submit" className="mt-2 rounded bg-indigo-600 px-3 py-1 text-xs text-white hover:bg-indigo-700" aria-label={`Buy ${it.title}`}>Buy</button>
+                <button type="submit" className="mt-2 rounded bg-primary px-3 py-1 text-xs text-white hover:bg-primary/90" aria-label={`Buy ${it.title}`}>Buy</button>
               </form>
             )}
           </div>

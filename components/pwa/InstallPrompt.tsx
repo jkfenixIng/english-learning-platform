@@ -22,7 +22,7 @@ export function InstallPrompt() {
   return (
     <div className="rounded border bg-indigo-50 p-3 dark:bg-indigo-950" aria-label="Install PWA prompt">
       <p className="text-sm font-medium">Install ELP for offline reviews</p>
-      <button onClick={install} className="mt-2 rounded bg-indigo-600 px-3 py-1 text-xs text-white" aria-label="Install app">Install</button>
+      <button onClick={install} className="mt-2 rounded bg-primary px-3 py-1 text-xs text-white" aria-label="Install app">Install</button>
     </div>
   );
 }

@@ -19,7 +19,7 @@ export function PronunciationRenderer({ prompt, onSubmit }: { prompt: Pronunciat
         {supported ? <button onClick={record} disabled={recording} className="rounded bg-red-600 px-4 py-2 text-sm text-white disabled:opacity-50">{recording ? "Listening..." : "● Pronounce"}</button> : <span className="text-xs text-amber-600">Browser unsupported — type</span>}
       </div>
       {transcript ? <p className="rounded bg-green-50 p-2 text-center text-sm">Heard: {transcript}</p> : null}
-      <button onClick={() => onSubmit({ transcript })} className="w-full rounded bg-indigo-600 px-4 py-2 text-white">Submit</button>
+      <button onClick={() => onSubmit({ transcript })} className="w-full rounded bg-primary px-4 py-2 text-white">Submit</button>
     </div>
   );
 }

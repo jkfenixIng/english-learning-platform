@@ -7,7 +7,7 @@ export function XpBar({ xp }: { xp: number }) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs"><span>Level {level}</span><span>{xp} XP</span></div>
-      <div className="h-2 rounded-full bg-gray-200"><div className="h-2 rounded-full bg-indigo-600 transition-all" style={{ width: `${pct}%` }} /></div>
+      <div className="h-2 rounded-full bg-gray-200"><div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} /></div>
       <p className="text-xs text-gray-500">{next - xp} XP to next level</p>
     </div>
   );

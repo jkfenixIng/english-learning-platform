@@ -31,5 +31,5 @@ export default async function ChallengesPage() {
 }
 
 function ChallengeJoinButton({ id }: { id: string }) {
-  return <form action={`/api/challenges/${id}/join`} method="post"><button formAction={`/api/challenges/${id}/join`} className="rounded bg-indigo-600 px-3 py-1 text-xs text-white">Join</button></form>;
+  return <form action={`/api/challenges/${id}/join`} method="post"><button formAction={`/api/challenges/${id}/join`} className="rounded bg-primary px-3 py-1 text-xs text-white">Join</button></form>;
 }

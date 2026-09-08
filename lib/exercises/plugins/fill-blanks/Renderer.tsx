@@ -36,7 +36,7 @@ export function FillBlanksRenderer({
       </div>
       <button
         onClick={() => onSubmit({ answers })}
-        className="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+        className="rounded bg-primary px-4 py-2 text-white hover:bg-primary/90"
       >
         Submit
       </button>

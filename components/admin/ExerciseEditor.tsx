@@ -41,7 +41,7 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
       <label className="mt-2 block text-xs">Solution JSON
         <textarea value={solution} onChange={(e)=>setSolution(e.target.value)} rows={4} className="w-full rounded border px-2 py-1 font-mono text-xs" aria-label="Solution JSON" />
       </label>
-      <button onClick={submit} className="mt-3 rounded bg-indigo-600 px-4 py-2 text-sm text-white" aria-label="Save exercise">Save Exercise</button>
+      <button onClick={submit} className="mt-3 rounded bg-primary px-4 py-2 text-sm text-white" aria-label="Save exercise">Save Exercise</button>
       {msg ? <p className="mt-2 text-xs" aria-live="polite">{msg}</p> : null}
     </div>
   );

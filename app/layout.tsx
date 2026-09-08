@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "English Learning Platform",
   description: "Learn English from A1 to C2 — at your own pace",
   manifest: "/manifest.json",
-  themeColor: "#4f46e5",
+  themeColor: "#6366a0",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

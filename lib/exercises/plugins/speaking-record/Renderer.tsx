@@ -20,7 +20,7 @@ export function SpeakingRecordRenderer({ prompt, onSubmit }: { prompt: SpeakingR
       </div>
       {transcript ? <p className="rounded bg-green-50 p-2 text-sm">Heard: {transcript}</p> : null}
       <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={supported ? "Or type fallback" : "Type your response"} className="w-full rounded border px-3 py-2 text-sm" />
-      <button onClick={() => onSubmit({ transcript: transcript || typed, fallbackTyped: typed })} className="rounded bg-indigo-600 px-4 py-2 text-white">Submit</button>
+      <button onClick={() => onSubmit({ transcript: transcript || typed, fallbackTyped: typed })} className="rounded bg-primary px-4 py-2 text-white">Submit</button>
     </div>
   );
 }

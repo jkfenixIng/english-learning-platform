@@ -21,7 +21,7 @@ export function TutorWidget() {
     setLoading(false);
   };
 
-  if (!open) return <button onClick={() => setOpen(true)} className="fixed bottom-4 right-4 rounded-full bg-indigo-600 p-4 text-white shadow-lg">💬</button>;
+  if (!open) return <button onClick={() => setOpen(true)} className="fixed bottom-4 right-4 rounded-full bg-primary p-4 text-white shadow-lg">💬</button>;
   return (
     <div className="fixed bottom-4 right-4 flex h-96 w-80 flex-col rounded-xl border bg-white shadow-xl dark:bg-gray-900">
       <div className="flex items-center justify-between border-b p-3"><span className="font-semibold">AI Tutor</span><button onClick={() => setOpen(false)} className="text-sm">✕</button></div>
@@ -32,7 +32,7 @@ export function TutorWidget() {
       </div>
       <div className="flex gap-2 border-t p-2">
         <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Ask..." className="flex-1 rounded border px-2 py-1 text-sm" />
-        <button onClick={send} className="rounded bg-indigo-600 px-3 py-1 text-sm text-white">Send</button>
+        <button onClick={send} className="rounded bg-primary px-3 py-1 text-sm text-white">Send</button>
       </div>
     </div>
   );

@@ -34,7 +34,7 @@ export function ShadowingRenderer({ prompt, onSubmit }: { prompt: ShadowingPromp
       <p className="text-sm text-gray-600">Listen, then shadow (repeat immediately with timing):</p>
       <p className="rounded bg-indigo-50 p-3 font-medium dark:bg-indigo-950">{prompt.reference}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <button onClick={play} className="rounded bg-indigo-600 px-4 py-2 text-white" aria-label="Play reference audio">▶ Play</button>
+        <button onClick={play} className="rounded bg-primary px-4 py-2 text-white" aria-label="Play reference audio">▶ Play</button>
         <label className="flex items-center gap-1 text-xs" aria-label="Playback speed">
           Speed
           <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded border px-2 py-1 dark:bg-gray-800">
@@ -64,7 +64,7 @@ export function ShadowingRenderer({ prompt, onSubmit }: { prompt: ShadowingPromp
           {feedback ? <p className="rounded bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">{feedback}</p> : null}
         </>
       ) : null}
-      <button onClick={() => onSubmit({ transcript })} className="rounded bg-indigo-600 px-4 py-2 text-white" aria-label="Submit shadowing">Submit</button>
+      <button onClick={() => onSubmit({ transcript })} className="rounded bg-primary px-4 py-2 text-white" aria-label="Submit shadowing">Submit</button>
     </div>
   );
 }

@@ -13,13 +13,13 @@ export function OrderingRenderer({ prompt, onSubmit }: { prompt: OrderingPrompt;
       <p className="text-sm text-gray-600">Click tokens to build the sentence in order:</p>
       <div className="flex flex-wrap gap-2">
         {order.map((t) => (
-          <button key={t} onClick={() => toggle(t)} className={`rounded-full border px-3 py-1 text-sm ${selected.includes(t) ? "bg-indigo-600 text-white" : "bg-white"}`}>{t}</button>
+          <button key={t} onClick={() => toggle(t)} className={`rounded-full border px-3 py-1 text-sm ${selected.includes(t) ? "bg-primary text-white" : "bg-white"}`}>{t}</button>
         ))}
       </div>
       <div className="min-h-10 rounded border bg-gray-50 p-2 text-sm">{selected.join(" ") || "—"}</div>
       <div className="flex gap-2">
         <button onClick={() => setSelected([])} className="rounded border px-3 py-2 text-sm">Clear</button>
-        <button onClick={() => onSubmit({ order: selected })} className="rounded bg-indigo-600 px-4 py-2 text-sm text-white">Submit</button>
+        <button onClick={() => onSubmit({ order: selected })} className="rounded bg-primary px-4 py-2 text-sm text-white">Submit</button>
       </div>
     </div>
   );

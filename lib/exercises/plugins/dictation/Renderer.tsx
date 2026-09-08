@@ -9,9 +9,9 @@ export function DictationRenderer({ prompt, onSubmit }: { prompt: DictationPromp
   return (
     <div className="space-y-3">
       <p className="text-sm text-gray-600">Listen and transcribe what you hear.</p>
-      <button onClick={play} className="rounded bg-indigo-600 px-4 py-2 text-white">▶ Play ({plays}/{prompt.playsAllowed})</button>
+      <button onClick={play} className="rounded bg-primary px-4 py-2 text-white">▶ Play ({plays}/{prompt.playsAllowed})</button>
       <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Type what you heard" rows={3} className="w-full rounded border px-3 py-2" />
-      <button onClick={() => onSubmit({ text })} className="rounded bg-indigo-600 px-4 py-2 text-white">Submit</button>
+      <button onClick={() => onSubmit({ text })} className="rounded bg-primary px-4 py-2 text-white">Submit</button>
     </div>
   );
 }

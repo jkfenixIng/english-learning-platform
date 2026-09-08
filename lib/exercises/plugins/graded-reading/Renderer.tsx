@@ -26,7 +26,7 @@ export function GradedReadingRenderer({ prompt, onSubmit }: { prompt: GradedRead
           </div>
         ))}
       </div>
-      <button onClick={() => onSubmit({ answers })} className="rounded bg-indigo-600 px-4 py-2 text-white">Submit</button>
+      <button onClick={() => onSubmit({ answers })} className="rounded bg-primary px-4 py-2 text-white">Submit</button>
     </div>
   );
 }
