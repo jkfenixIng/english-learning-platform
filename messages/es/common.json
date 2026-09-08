@@ -49,7 +49,10 @@
     "theme": "Tema",
     "light": "Claro",
     "dark": "Oscuro",
-    "locale": "Idioma"
+    "locale": "Idioma",
+    "srsEnabled": "Repetición espaciada",
+    "challengesEnabled": "Desafíos",
+    "emailNotifications": "Notificaciones por correo"
   },
   "exercise": {
     "submit": "Enviar",
@@ -63,7 +66,31 @@
     "xp": "XP",
     "level": "Nivel",
     "streak": "Racha",
-    "badges": "Insignias"
+    "badges": "Insignias",
+    "leaderboard": "Clasificación",
+    "weekly": "Semanal",
+    "allTime": "Histórico",
+    "shopPurchase": "Comprar con XP",
+    "insufficientXp": "XP insuficiente"
+  },
+  "challenges": {
+    "title": "Desafíos",
+    "daily": "Diario",
+    "weekly": "Semanal",
+    "timed": "Cronometrado",
+    "streak": "Racha",
+    "competitive": "Competitivo",
+    "join": "Unirse",
+    "joined": "Unido",
+    "completed": "Completado",
+    "reward": "Recompensa"
+  },
+  "srs": {
+    "title": "Repasos diarios",
+    "dueToday": "Para hoy",
+    "disabled": "SRS desactivado — actívalo en ajustes",
+    "quality": "Calidad (0-5)",
+    "offlineCached": "Repasos en caché sin conexión"
   },
   "common": {
     "loading": "Cargando...",

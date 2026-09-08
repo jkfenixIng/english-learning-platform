@@ -1,8 +1,10 @@
 "use client";
 import { usePreferencesStore } from "../../../lib/stores/preferences";
+import { useOnlineStatus } from "../../../lib/hooks/useOnlineStatus";
 
 export default function SettingsPage() {
-  const { navigationMode, progressionMode, locale, theme, setNavigationMode, setProgressionMode, setLocale, setTheme } = usePreferencesStore();
+  const { navigationMode, progressionMode, locale, theme, srsEnabled, challengesEnabled, emailNotifications, setNavigationMode, setProgressionMode, setLocale, setTheme, setSrsEnabled, setChallengesEnabled, setEmailNotifications } = usePreferencesStore();
+  const online = useOnlineStatus();
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Settings</h1>
@@ -30,6 +32,12 @@ export default function SettingsPage() {
           <div className="mt-2 flex gap-2">
             {(["light", "dark"] as const).map((t) => <button key={t} onClick={() => setTheme(t)} className={`rounded px-3 py-1 text-sm capitalize ${theme === t ? "bg-indigo-600 text-white" : "border"}`}>{t}</button>)}
           </div>
+        </div>
+        <div className="border-t pt-4 space-y-3">
+          <label className="flex items-center justify-between text-sm"><span>SRS (spaced repetition)</span><input type="checkbox" checked={srsEnabled} onChange={(e) => setSrsEnabled(e.target.checked)} /></label>
+          <label className="flex items-center justify-between text-sm"><span>Challenges opt-in</span><input type="checkbox" checked={challengesEnabled} onChange={(e) => setChallengesEnabled(e.target.checked)} /></label>
+          <label className="flex items-center justify-between text-sm"><span>Email notifications (Resend)</span><input type="checkbox" checked={emailNotifications} onChange={(e) => setEmailNotifications(e.target.checked)} /></label>
+          <p className="text-xs text-gray-400">Offline: {online ? "online" : "offline — reviews cached via IndexedDB"}</p>
         </div>
       </div>
     </div>
