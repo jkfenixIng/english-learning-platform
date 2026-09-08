@@ -36,19 +36,44 @@ const B_TEMPLATES: typeof EXERCISE_TEMPLATES = [
   { type: "pronunciation", prompt: { word: "entrepreneur", phonetic: "/ˌɒntrəprəˈnɜː/", example: "She is a successful entrepreneur." }, solution: { word: "entrepreneur" }, difficulty: 4 },
 ];
 
+// C-level academic/professional + long-form readings ~400-600 words, advanced grammar (inversion/cleft)
+const C_READING_ACADEMIC = `Academic writing at the C1-C2 threshold demands more than grammatical accuracy; it requires rhetorical control and an awareness of how linguistic choices encode stance. In contemporary research articles, writers hedge claims with devices such as modal verbs, tentative adverbs, and reporting clauses to acknowledge the provisional nature of knowledge. Not only do these hedges signal intellectual humility, but they also invite dialogue rather than imposing certainty. It is the precision of the claim, not its boldness, that persuades a disciplinary audience. Consider the cleft structure "What the study reveals is not causation but correlation": the syntax foregrounds the contrast, guiding the reader toward the intended interpretation. Similarly, inversion serves a cohesive function — "Never before has replication been so central to credibility" — placing the evaluative frame first and linking the sentence to a broader argument about the replication crisis. Such structures are not ornamental; they choreograph attention. Professional negotiation, moreover, relies on parallel pragmatics. A negotiator rarely states "We cannot accept that price." Instead, one frames interests: "What we need is flexibility on delivery timelines to justify the margin." This cleft politely shifts focus from refusal to underlying need, preserving rapport while holding a firm position. Mastery at C2 thus lies in deploying grammar as strategy, calibrating formality, directness, and interpersonal risk across academic and professional genres with intentional variation rather than rote complexity.`;
+
+const C_READING_BUSINESS = `Business negotiation in cross-border contexts illustrates the interplay of language, culture, and power with unusual clarity. When a procurement team enters a final round of vendor selection, the linguistic surface appears transactional — price, lead time, service level — yet the underlying negotiation is relational and procedural. Effective negotiators sequence their moves: they anchor expectations early, concede in small increments tied to reciprocity, and summarize emerging consensus to prevent revision. Rarely does a skilled negotiator open with a concession; seldom will they reveal their walk-away price before testing the counterpart's flexibility. Cleft sentences become tools for reframing: "What concerns us is not the unit cost per se, but the variance in after-sales support across regions." The structure isolates the real issue and signals that a solution addressing that variable will unlock agreement. Inversion, too, functions as emphasis and cohesion: "Not until the compliance review is complete can we authorize the rollout." Placed after a detailed risk analysis, the inversion converts a procedural constraint into a logical consequence rather than an arbitrary block. For learners at C1-C2, the pedagogical goal is not to memorize such forms but to recognize when indirectness mitigates face-threat and when directness signals confidence. Simulations that mirror authentic pressures — time limits, incomplete information, shifting stakeholders — train this judgment far better than gap-fill drills alone, even as controlled practice builds the automatization needed to deploy these forms under pressure.`;
+
+const C_TEMPLATES: typeof EXERCISE_TEMPLATES = [
+  { type: "fill_blanks", prompt: { text: "___ had the report been published when the controversy erupted. (Negative inversion)", blanks: [{ id: "b1", hint: "No sooner / Hardly" }] }, solution: { answers: { b1: ["No sooner", "Hardly"] } }, difficulty: 5 },
+  { type: "ordering", prompt: { tokens: ["What", "we", "need", "is", "greater", "transparency", "on", "pricing"] }, solution: { order: ["What", "we", "need", "is", "greater", "transparency", "on", "pricing"] }, difficulty: 5 },
+  { type: "transformation", prompt: { instruction: "Rewrite with inversion: The significance of the finding had never been so contested.", sentence: "The significance of the finding had never been so contested." }, solution: { accepted: ["Never had the significance of the finding been so contested.", "Never before had the significance of the finding been so contested."] }, difficulty: 5 },
+  { type: "flashcard", prompt: { front: "mitigate (v) — to make less severe", back: "mitigar", imageUrl: "https://via.placeholder.com/150?text=mitigate" }, solution: { back: "mitigar" }, difficulty: 5 },
+  { type: "matching", prompt: { pairs: [{ id: "1", left: "cleft sentence", right: "What matters is X" }, { id: "2", left: "hedging", right: "It seems plausible that" }] }, solution: { pairs: [{ id: "1", left: "cleft sentence", right: "What matters is X" }, { id: "2", left: "hedging", right: "It seems plausible that" }] }, difficulty: 5 },
+  { type: "listening_tts", prompt: { text: "Not until the board approves the proposal can we proceed with the investment.", question: "When can we proceed?", options: ["After board approval", "Immediately"] }, solution: { answer: "After board approval" }, difficulty: 5 },
+  { type: "dictation", prompt: { text: "What the data indicate is a correlation rather than a causal relationship between variables", playsAllowed: 2 }, solution: { text: "What the data indicate is a correlation rather than a causal relationship between variables" }, difficulty: 5 },
+  { type: "comprehension", prompt: { passage: "It is precisely the replication crisis that has forced journals to tighten reporting standards, requiring preregistration and open data.", question: "What forced journals to tighten standards?", options: ["Replication crisis", "Funding cuts"] }, solution: { answer: "Replication crisis" }, difficulty: 5 },
+  { type: "graded_reading", prompt: { title: "Hedging and Stance in Academic Writing", passage: C_READING_ACADEMIC, vocab: [{ word: "hedge", definition: "to soften a claim" }, { word: "cleft", definition: "a syntax that foregrounds part of a clause, e.g., What matters is X" }, { word: "inversion", definition: "reversal of normal word order for emphasis" }], questions: [{ id: "q1", question: "What do hedges signal?", options: ["Humility and openness to dialogue", "Certainty"], answer: "Humility and openness to dialogue" }, { id: "q2", question: "What does the cleft emphasize in the example?", options: ["Correlation vs causation", "Sample size"], answer: "Correlation vs causation" }, { id: "q3", question: "What rhetorical function does inversion serve here?", options: ["Cohesion and emphasis", "Citation"], answer: "Cohesion and emphasis" }] }, solution: { answers: { q1: "Humility and openness to dialogue", q2: "Correlation vs causation", q3: "Cohesion and emphasis" } }, difficulty: 5 },
+  { type: "writing_prompt", prompt: { prompt: "Write a 250-300 word academic paragraph arguing that open data should be mandatory for publicly funded research. Use at least one cleft and one inversion for emphasis. Hedging required.", minWords: 200, maxWords: 350 }, solution: { sampleAnswer: "What public funding implies is a responsibility to enable scrutiny. Never has reproducibility been more vital..." }, difficulty: 5 },
+  { type: "speaking_record", prompt: { text: "Not until we address the compliance risks can we finalize the partnership agreement.", instruction: "Deliver this stance with firm but diplomatic intonation" }, solution: { reference: "Not until we address the compliance risks can we finalize the partnership agreement." }, difficulty: 5 },
+  { type: "shadowing", prompt: { reference: "What we are proposing is a phased rollout contingent on milestone verification.", speed: 1, variants: [0.85, 1, 1.15] }, solution: { reference: "What we are proposing is a phased rollout contingent on milestone verification." }, difficulty: 5 },
+  { type: "pronunciation", prompt: { word: "epistemology", phonetic: "/ɪˌpɪstəˈmɒlədʒi/", example: "Epistemology shapes how we frame research questions." }, solution: { word: "epistemology" }, difficulty: 5 },
+  // Second reading for variance
+  { type: "graded_reading", prompt: { title: "Negotiating Across Cultures", passage: C_READING_BUSINESS, vocab: [{ word: "anchor", definition: "to set an initial reference point" }, { word: "reciprocity", definition: "mutual exchange" }], questions: [{ id: "q1", question: "Why sequence moves carefully?", options: ["To anchor and test flexibility", "To rush agreement"], answer: "To anchor and test flexibility" }, { id: "q2", question: "What does the cleft reframe?", options: ["The real issue is support variance, not price", "Price is the only issue"], answer: "The real issue is support variance, not price" }] }, solution: { answers: { q1: "To anchor and test flexibility", q2: "The real issue is support variance, not price" } }, difficulty: 5 },
+];
+
 const LEVEL_META: Record<string, { title: string; description: string; orderIndex: number; unitNames: [string, string] }> = {
   A1: { title: "Beginner (A1)", description: "CEFR A1 - Beginner", orderIndex: 1, unitNames: ["Basics", "Daily Life"] },
   A2: { title: "Elementary (A2)", description: "CEFR A2 - Elementary", orderIndex: 2, unitNames: ["Travel", "Work Basics"] },
   B1: { title: "Intermediate (B1)", description: "CEFR B1 - Intermediate", orderIndex: 3, unitNames: ["Professional Communication", "Culture & Media"] },
   B2: { title: "Upper Intermediate (B2)", description: "CEFR B2 - Upper Intermediate", orderIndex: 4, unitNames: ["Academic & Business", "Critical Thinking"] },
+  C1: { title: "Advanced (C1)", description: "CEFR C1 - Advanced academic & professional", orderIndex: 5, unitNames: ["Academic Discourse", "Professional Negotiation"] },
+  C2: { title: "Mastery (C2)", description: "CEFR C2 - Mastery & nuance", orderIndex: 6, unitNames: ["Nuance, Idioms & Register", "Mastery & Research"] },
 };
 
 async function seedLevel(levelCode: string) {
   const meta = LEVEL_META[levelCode]!;
   const level = await prisma.level.upsert({ where: { code: levelCode as never }, update: {}, create: { code: levelCode as never, title: meta.title, description: meta.description, orderIndex: meta.orderIndex } });
 
-  const templates = levelCode.startsWith("B") ? B_TEMPLATES : EXERCISE_TEMPLATES;
-  const perLessonCount = levelCode.startsWith("B") ? 4 : 3;
+  const templates = levelCode.startsWith("C") ? C_TEMPLATES : levelCode.startsWith("B") ? B_TEMPLATES : EXERCISE_TEMPLATES;
+  const perLessonCount = levelCode.startsWith("C") ? 5 : levelCode.startsWith("B") ? 4 : 3;
 
   for (let ui = 1; ui <= 2; ui++) {
     let unit = await prisma.unit.findFirst({ where: { levelId: level.id, orderIndex: ui } });
@@ -56,7 +81,7 @@ async function seedLevel(levelCode: string) {
     for (let li = 1; li <= 3; li++) {
       const isQuiz = li === 3;
       let lesson = await prisma.lesson.findFirst({ where: { unitId: unit.id, orderIndex: li } });
-      if (!lesson) lesson = await prisma.lesson.create({ data: { unitId: unit.id, title: `Lesson ${li}${isQuiz ? " — Quiz" : ""}`, objectives: `Objectives for ${levelCode} U${ui} L${li}`, orderIndex: li, estimatedMinutes: levelCode.startsWith("B") ? 15 : 10, isQuiz, isExam: false } });
+      if (!lesson) lesson = await prisma.lesson.create({ data: { unitId: unit.id, title: `Lesson ${li}${isQuiz ? " — Quiz" : ""}`, objectives: `Objectives for ${levelCode} U${ui} L${li}`, orderIndex: li, estimatedMinutes: levelCode.startsWith("C") ? 20 : levelCode.startsWith("B") ? 15 : 10, isQuiz, isExam: false } });
       const startIdx = ((ui - 1) * perLessonCount + (li - 1) * perLessonCount) % templates.length;
       for (let ei = 0; ei < perLessonCount; ei++) {
         const tmpl = templates[(startIdx + ei) % templates.length]!;
@@ -74,42 +99,46 @@ async function seedLevel(levelCode: string) {
   if ((await prisma.exercise.count({ where: { lessonId: examLesson.id } })) === 0) {
     for (let i = 0; i < 5; i++) {
       const tmpl = templates[i % templates.length]!;
-      await prisma.exercise.create({ data: { lessonId: examLesson.id, type: tmpl.type as never, difficulty: levelCode.startsWith("B") ? 4 : 3, prompt: tmpl.prompt as never, solution: tmpl.solution as never } });
+      await prisma.exercise.create({ data: { lessonId: examLesson.id, type: tmpl.type as never, difficulty: levelCode.startsWith("C") ? 5 : levelCode.startsWith("B") ? 4 : 3, prompt: tmpl.prompt as never, solution: tmpl.solution as never } });
     }
   }
 }
 
 async function main() {
-  console.log("Seeding A1..B2...");
+  console.log("Seeding A1..C2...");
 
-  for (const code of ["A1", "A2", "B1", "B2"] as const) await seedLevel(code);
+  for (const code of ["A1", "A2", "B1", "B2", "C1", "C2"] as const) await seedLevel(code);
 
-  // Badges B-level
+  // Badges B-level + C-level informal certificates
   const badges = [
-    { code: "first_lesson", title: "First Step", description: "Complete your first lesson", icon: "🎯", rule: { type: "lessons_completed", gte: 1 } },
-    { code: "streak_3", title: "3-Day Streak", description: "3 days in a row", icon: "🔥", rule: { type: "streak", gte: 3 } },
-    { code: "streak_7", title: "Week Warrior", description: "7-day streak", icon: "🏆", rule: { type: "streak", gte: 7 } },
-    { code: "a1_complete", title: "A1 Complete", description: "Pass A1 exam", icon: "🎓", rule: { type: "level_pass", equals: "A1" } },
-    { code: "a2_complete", title: "A2 Complete", description: "Pass A2 exam", icon: "🎓", rule: { type: "level_pass", equals: "A2" } },
-    { code: "b1_complete", title: "B1 Complete", description: "Pass B1 exam", icon: "🎓", rule: { type: "level_pass", equals: "B1" } },
-    { code: "b2_complete", title: "B2 Complete", description: "Pass B2 exam", icon: "🎓", rule: { type: "level_pass", equals: "B2" } },
-    { code: "xp_100", title: "100 XP", description: "Earn 100 XP", icon: "⭐", rule: { type: "xp", gte: 100 } },
-    { code: "xp_500", title: "500 XP", description: "Earn 500 XP", icon: "🌟", rule: { type: "xp", gte: 500 } },
-    { code: "ten_lessons", title: "Dedicated", description: "Complete 10 lessons", icon: "📚", rule: { type: "lessons_completed", gte: 10 } },
-    { code: "quiz_master", title: "Quiz Master", description: "Pass 5 quizzes", icon: "🧠", rule: { type: "lessons_completed", gte: 5 } },
-    { code: "explorer", title: "Explorer", description: "Try all exercise types", icon: "🗺️", rule: { type: "lessons_completed", gte: 3 } },
+    { code: "first_lesson", title: "First Step", description: "Complete your first lesson", icon: "🎯", rule: { type: "lessons_completed", gte: 1 }, isPremium: false },
+    { code: "streak_3", title: "3-Day Streak", description: "3 days in a row", icon: "🔥", rule: { type: "streak", gte: 3 }, isPremium: false },
+    { code: "streak_7", title: "Week Warrior", description: "7-day streak", icon: "🏆", rule: { type: "streak", gte: 7 }, isPremium: false },
+    { code: "a1_complete", title: "A1 Complete", description: "Pass A1 exam", icon: "🎓", rule: { type: "level_pass", equals: "A1" }, isPremium: false },
+    { code: "a2_complete", title: "A2 Complete", description: "Pass A2 exam", icon: "🎓", rule: { type: "level_pass", equals: "A2" }, isPremium: false },
+    { code: "b1_complete", title: "B1 Complete", description: "Pass B1 exam", icon: "🎓", rule: { type: "level_pass", equals: "B1" }, isPremium: false },
+    { code: "b2_complete", title: "B2 Complete", description: "Pass B2 exam", icon: "🎓", rule: { type: "level_pass", equals: "B2" }, isPremium: false },
+    { code: "c1_complete", title: "C1 Advanced", description: "Pass C1 exam — Advanced academic & professional", icon: "🎓", rule: { type: "level_pass", equals: "C1" }, isPremium: false },
+    { code: "c2_master", title: "C2 Mastery", description: "Pass C2 exam — Mastery, awarded as informal certificate", icon: "🏅", rule: { type: "level_pass", equals: "C2" }, isPremium: false },
+    { code: "c2_distinction", title: "C2 Distinction (Premium)", description: "Premium distinction badge — future paywall placeholder", icon: "💎", rule: { type: "level_pass", equals: "C2" }, isPremium: true },
+    { code: "xp_100", title: "100 XP", description: "Earn 100 XP", icon: "⭐", rule: { type: "xp", gte: 100 }, isPremium: false },
+    { code: "xp_500", title: "500 XP", description: "Earn 500 XP", icon: "🌟", rule: { type: "xp", gte: 500 }, isPremium: false },
+    { code: "ten_lessons", title: "Dedicated", description: "Complete 10 lessons", icon: "📚", rule: { type: "lessons_completed", gte: 10 }, isPremium: false },
+    { code: "quiz_master", title: "Quiz Master", description: "Pass 5 quizzes", icon: "🧠", rule: { type: "lessons_completed", gte: 5 }, isPremium: false },
+    { code: "explorer", title: "Explorer", description: "Try all exercise types", icon: "🗺️", rule: { type: "lessons_completed", gte: 3 }, isPremium: false },
   ];
-  for (const b of badges) await prisma.badge.upsert({ where: { code: b.code }, update: {}, create: b as never });
+  for (const b of badges) await prisma.badge.upsert({ where: { code: b.code }, update: { title: b.title, description: b.description, icon: b.icon, isPremium: b.isPremium }, create: b as never });
 
   const shopItems = [
-    { title: "Streak Freeze", description: "Protect your streak for one day", priceXp: 100, cosmeticType: "freeze", assetUrl: null, rarity: "common" },
-    { title: "Avatar Hat", description: "Cool hat for your avatar", priceXp: 150, cosmeticType: "avatar", assetUrl: null, rarity: "common" },
-    { title: "Golden Badge Frame", description: "Shiny frame", priceXp: 200, cosmeticType: "frame", assetUrl: null, rarity: "rare" },
-    { title: "Theme: Ocean", description: "Ocean theme", priceXp: 250, cosmeticType: "theme", assetUrl: null, rarity: "rare" },
-    { title: "XP Boost (1 day)", description: "Double XP for 24h", priceXp: 300, cosmeticType: "boost", assetUrl: null, rarity: "epic" },
-    { title: "Avatar Pet", description: "Cute companion", priceXp: 400, cosmeticType: "pet", assetUrl: null, rarity: "epic" },
-    { title: "Legendary Title", description: "Show off", priceXp: 500, cosmeticType: "title", assetUrl: null, rarity: "legendary" },
-    { title: "Confetti Effect", description: "Celebration effect", priceXp: 350, cosmeticType: "effect", assetUrl: null, rarity: "rare" },
+    { title: "Streak Freeze", description: "Protect your streak for one day", priceXp: 100, cosmeticType: "freeze", assetUrl: null, rarity: "common", isPremium: false },
+    { title: "Avatar Hat", description: "Cool hat for your avatar", priceXp: 150, cosmeticType: "avatar", assetUrl: null, rarity: "common", isPremium: false },
+    { title: "Golden Badge Frame", description: "Shiny frame", priceXp: 200, cosmeticType: "frame", assetUrl: null, rarity: "rare", isPremium: false },
+    { title: "Theme: Ocean", description: "Ocean theme", priceXp: 250, cosmeticType: "theme", assetUrl: null, rarity: "rare", isPremium: false },
+    { title: "XP Boost (1 day)", description: "Double XP for 24h", priceXp: 300, cosmeticType: "boost", assetUrl: null, rarity: "epic", isPremium: false },
+    { title: "Avatar Pet", description: "Cute companion", priceXp: 400, cosmeticType: "pet", assetUrl: null, rarity: "epic", isPremium: false },
+    { title: "Legendary Title", description: "Show off", priceXp: 500, cosmeticType: "title", assetUrl: null, rarity: "legendary", isPremium: false },
+    { title: "Confetti Effect", description: "Celebration effect", priceXp: 350, cosmeticType: "effect", assetUrl: null, rarity: "rare", isPremium: false },
+    { title: "Premium Badge Frame — Diamond", description: "Premium cosmetic — paywall placeholder", priceXp: 800, cosmeticType: "frame", assetUrl: null, rarity: "legendary", isPremium: true },
   ];
   for (const item of shopItems) {
     const exists = await prisma.shopItem.findFirst({ where: { title: item.title } });
@@ -140,7 +169,7 @@ async function main() {
     }
   }
 
-  console.log("Seed complete A1..B2 plus challenges");
+  console.log("Seed complete A1..C2 plus challenges");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());
