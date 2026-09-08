@@ -36,14 +36,11 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
   const parsed = exerciseAdminSchema.partial().safeParse(rest);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const updated = await prisma.exercise.update({
-    where: { id },
-    data: {
-      type: parsed.data.type as never,
-      difficulty: parsed.data.difficulty,
-      prompt: parsed.data.prompt as never,
-      solution: parsed.data.solution as never,
-    },
-  });
+  const data: Record<string, unknown> = {};
+  if (parsed.data.type) data.type = parsed.data.type;
+  if (parsed.data.difficulty !== undefined) data.difficulty = parsed.data.difficulty;
+  if (parsed.data.prompt !== undefined) data.prompt = parsed.data.prompt as never;
+  if (parsed.data.solution !== undefined) data.solution = parsed.data.solution as never;
+  const updated = await prisma.exercise.update({ where: { id }, data: data as never });
   return NextResponse.json(updated);
 }

@@ -4,7 +4,6 @@ import { ExerciseEditor } from "../../../../components/admin/ExerciseEditor";
 export default async function AdminExercisesPage() {
   let exercises: { id: string; type: string; difficulty: number }[] = [];
   try { exercises = await prisma.exercise.findMany({ take: 30, orderBy: { createdAt: "desc" } }); } catch { exercises = []; }
-  const sampleLessonId = exercises[0]?.id ? undefined : undefined;
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Exercises — CRUD (13 types)</h1>
@@ -16,7 +15,7 @@ export default async function AdminExercisesPage() {
           {exercises.length===0?<tr><td colSpan={3} className="py-4 text-center text-gray-500">No exercises loaded — DB pending; editor proof below.</td></tr>:null}
         </tbody>
       </table>
-      <ExerciseEditor lessonId={sampleLessonId} />
+      <ExerciseEditor />
       <div className="rounded bg-gray-50 p-3 text-xs dark:bg-gray-900">
         <p>Proof: admin edits <code>fill_blanks</code> prompt → student view at <code>/exercises/[id]</code> shows updated text. Patch via <code>PATCH /api/admin/exercises</code> with Zod validation.</p>
       </div>

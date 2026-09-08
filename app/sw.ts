@@ -5,7 +5,7 @@ self.addEventListener("activate", (event: Event) => {
   (self as unknown as { clients: { claim: () => void } }).clients.claim();
   // Clean old caches on activate
   const extend = (event as unknown as { waitUntil: (p: Promise<void>) => void }).waitUntil;
-  if (extend) extend(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)))));
+  if (extend) extend(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)))).then(() => undefined));
 });
 self.addEventListener("message", (event: Event) => {
   const msg = (event as MessageEvent).data as { type?: string } | undefined;
