@@ -92,10 +92,31 @@
     "quality": "Quality (0-5)",
     "offlineCached": "Reviews cached for offline"
   },
+  "badges": {
+    "title": "Achievements",
+    "share": "Share",
+    "copied": "Copied!",
+    "premiumLocked": "Premium badge — upgrade to unlock (paywall placeholder)",
+    "informalNote": "Informal certificate — no official accreditation"
+  },
+  "paywall": {
+    "premiumLocked": "Premium locked",
+    "upgradeSoon": "Upgrade to unlock (Stripe coming soon)"
+  },
+  "pwa": {
+    "install": "Install app for offline reviews",
+    "offlineCached": "Reviews cached for offline",
+    "syncQueued": "Changes queued — will sync when online"
+  },
+  "speech": {
+    "shadowing": "Shadowing — repeat with timing",
+    "transcriptDiff": "Reference vs you",
+    "score": "Score"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
-    "offline": "You are offline",
+    "offline": "You are offline — reviews remain available",
     "comingSoon": "Coming soon"
   }
 }

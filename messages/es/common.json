@@ -92,10 +92,31 @@
     "quality": "Calidad (0-5)",
     "offlineCached": "Repasos en caché sin conexión"
   },
+  "badges": {
+    "title": "Logros",
+    "share": "Compartir",
+    "copied": "¡Copiado!",
+    "premiumLocked": "Insignia premium — actualiza para desbloquear",
+    "informalNote": "Certificado informal — sin acreditación oficial"
+  },
+  "paywall": {
+    "premiumLocked": "Contenido premium bloqueado",
+    "upgradeSoon": "Mejora para desbloquear (Stripe próximamente)"
+  },
+  "pwa": {
+    "install": "Instala la app para repasos sin conexión",
+    "offlineCached": "Repasos en caché sin conexión",
+    "syncQueued": "Cambios en cola — se sincronizarán al conectarte"
+  },
+  "speech": {
+    "shadowing": "Shadowing — repite con ritmo",
+    "transcriptDiff": "Referencia vs tú",
+    "score": "Puntaje"
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Algo salió mal",
-    "offline": "Estás sin conexión",
+    "offline": "Estás sin conexión — los repasos siguen disponibles",
     "comingSoon": "Próximamente"
   }
 }

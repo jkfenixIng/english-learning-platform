@@ -1,13 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useOnlineStatus } from "../../lib/hooks/useOnlineStatus";
 export function OfflineBanner() {
-  const [online, setOnline] = useState(true);
-  useEffect(() => {
-    setOnline(navigator.onLine);
-    const on = () => setOnline(true), off = () => setOnline(false);
-    window.addEventListener("online", on); window.addEventListener("offline", off);
-    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
-  }, []);
+  const online = useOnlineStatus();
   if (online) return null;
-  return <div className="bg-amber-500 px-4 py-2 text-center text-sm text-white">You are offline — some features may be limited</div>;
+  return (
+    <div className="bg-amber-500 px-4 py-2 text-center text-sm text-white" role="status" aria-live="polite">
+      You are offline — reviews remain available (queued sync when back online)
+    </div>
+  );
 }

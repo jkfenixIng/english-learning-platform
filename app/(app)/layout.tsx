@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
 import { OfflineBanner } from "../../components/pwa/OfflineBanner";
+import { InstallPrompt } from "../../components/pwa/InstallPrompt";
 import { TutorWidget } from "../../components/tutor/TutorWidget";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <ThemeToggle />
         </nav>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-4"><InstallPrompt /></div>
+        {children}
+      </main>
       <TutorWidget />
     </div>
   );

@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
   );
 
   // Supabase auth check for /app and /admin
-  const needsAuth = pathname.includes("/dashboard") || pathname.includes("/levels") || pathname.includes("/admin") || pathname.includes("/tutor") || pathname.includes("/shop") || pathname.includes("/settings") || pathname.includes("/challenges") || pathname.includes("/reviews") || pathname.includes("/leaderboard") || pathname.includes("/badges");
+  const needsAuth = pathname.includes("/dashboard") || pathname.includes("/levels") || pathname.includes("/admin") || pathname.includes("/tutor") || pathname.includes("/shop") || pathname.includes("/settings") || pathname.includes("/challenges") || pathname.includes("/reviews") || pathname.includes("/leaderboard");
 
   if (!needsAuth) return intlResponse;
 
