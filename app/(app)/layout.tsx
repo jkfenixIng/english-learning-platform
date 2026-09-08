@@ -12,6 +12,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <nav className="flex items-center gap-3 text-sm">
           <Link href="/dashboard">Dashboard</Link>
           <Link href="/levels/A1">Levels</Link>
+          <Link href="/challenges">Challenges</Link>
+          <Link href="/reviews">Reviews</Link>
+          <Link href="/leaderboard">Leaderboard</Link>
           <Link href="/shop">Shop</Link>
           <Link href="/tutor">Tutor</Link>
           <Link href="/settings">Settings</Link>
