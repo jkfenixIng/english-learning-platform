@@ -75,7 +75,7 @@ export default function RegisterPage() {
       {msg ? <p className="mb-3 text-sm text-amber-600">{msg}</p> : null}
       <button
         disabled={loading}
-        className="w-full rounded bg-indigo-600 py-2 text-white disabled:opacity-50"
+        className="w-full rounded bg-primary py-2 text-white disabled:opacity-50"
       >
         {loading ? "..." : "Sign up"}
       </button>

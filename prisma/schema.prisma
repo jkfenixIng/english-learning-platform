@@ -63,6 +63,7 @@ model User {
   createdAt        DateTime @default(now()) @map("created_at")
 
   preferences UserPreferences?
+  aiSettings  UserAiSettings?
   attempts    Attempt[]
   progress    Progress[]
   streak      UserStreak?
@@ -87,6 +88,20 @@ model UserPreferences {
   challengesEnabled  Boolean        @default(true) @map("challenges_enabled")
 
   @@map("user_preferences")
+}
+
+model UserAiSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id") @db.Uuid
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider        String   @default("mock")
+  encryptedApiKey String?  @map("encrypted_api_key")
+  model           String?
+  enabled         Boolean  @default(false)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("user_ai_settings")
 }
 
 model Level {

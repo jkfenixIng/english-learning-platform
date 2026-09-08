@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ProviderRouter } from "../../../../lib/ai/router";
+import { createClient } from "../../../../lib/supabase/server";
 
 export async function POST(req: NextRequest) {
-  const body = await req.json() as { messages: { role: "user" | "assistant" | "system"; content: string }[] };
-  const router = new ProviderRouter();
+  const body = (await req.json()) as {
+    messages: { role: "user" | "assistant" | "system"; content: string }[];
+  };
+  let userId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    userId = data.user?.id ?? null;
+  } catch {
+    // ignore — use env fallback
+  }
+  const router = await ProviderRouter.createForUser(userId);
   try {
     const reply = await router.chat(body.messages);
     return NextResponse.json({ reply });
