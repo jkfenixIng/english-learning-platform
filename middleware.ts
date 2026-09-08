@@ -13,9 +13,19 @@ export async function middleware(request: NextRequest) {
   }
 
   const pathname = request.nextUrl.pathname;
+  // Strip locale prefix once for all checks (/es/auth/callback -> /auth/callback)
+  const pathnameWithoutLocale = pathname.replace(/^\/(en|es)(?=\/|$)/, "") || "/";
 
   // Auth callback must bypass both intl auth checks and Supabase session gate.
-  // Route lives at /auth/callback outside [locale] — no prefix.
+  // Handles both /auth/callback and /es/auth/callback | /en/auth/callback
+  // (emailRedirectTo is /auth/callback but next-intl with localePrefix: as-needed
+  // rewrites/redirects it to /es/auth/callback for Accept-Language: es).
+  if (
+    pathnameWithoutLocale === "/auth/callback" ||
+    pathnameWithoutLocale.startsWith("/auth/callback/")
+  ) {
+    return intlResponse;
+  }
   if (pathname === "/auth/callback" || pathname.startsWith("/auth/callback/")) {
     return intlResponse;
   }
@@ -23,16 +33,12 @@ export async function middleware(request: NextRequest) {
   // Fallback: legacy emails that still point code= to "/" (Site URL was localhost).
   // Rewrite to the real handler so the code is not lost.
   if (request.nextUrl.searchParams.has("code")) {
-    const pathnameWithoutLocaleForCode = pathname.replace(/^\/(en|es)(?=\/|$)/, "") || "/";
-    if (pathnameWithoutLocaleForCode === "/") {
+    if (pathnameWithoutLocale === "/") {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/callback";
       return NextResponse.redirect(url);
     }
   }
-
-  // Strip locale prefix for route checks (/es/login -> /login, /es -> /)
-  const pathnameWithoutLocale = pathname.replace(/^\/(en|es)(?=\/|$)/, "") || "/";
 
   const publicPaths = ["/", "/login", "/register", "/api"];
   const isPublic = publicPaths.some(
