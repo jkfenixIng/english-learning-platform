@@ -1,0 +1,38 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Next.js 15 App Router, TypeScript 5, Tailwind CSS 4, Prisma + Supabase Postgres (free), NextAuth, next-pwa (PWA), Vercel, GitHub
+  Architecture: Clean/Hexagonal modular monolith, Route Groups (app/), Server Components default, Prisma DAL, Supabase free tier, provider-agnostic AI abstraction
+  Testing: Vitest + Testing Library (unit/integration), Playwright (E2E) — not yet installed (greenfield)
+  Style: ESLint + Prettier, strict TS, Tailwind 4 with cn(), no var() in className, conventional commits
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages
+    - Respect zero-paid-services constraint (free tiers only)
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Enforce CEFR strict A1-C2 traceability
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+    - Keep AI abstraction provider-agnostic (free tier)
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+    - Align slices: 1=A1-A2 core, 2=B1-B2+retos/spaced, 3=C1-C2+speaking+admin
+  apply:
+    guidelines:
+      - Follow existing code patterns and conventions
+      - Load relevant coding skills (nextjs-15, tailwind-4, typescript, zod-4, zustand-5, react-19)
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: "npm test"
+    build_command: "npm run build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas (large removals)
