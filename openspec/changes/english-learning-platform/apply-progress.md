@@ -52,11 +52,58 @@
 - [x] T-1-POLISH-02 Error/loading/empty states + a11y (Skeleton, semantic HTML, aria labels)
 - [x] T-1-DEPLOY-01 Vercel deploy ready (vercel.json, build passes, env placeholders)
 
-## Deferred to Slice 2-3 (not in this commit)
-- Slice 2: B1-B2 content, challenges, SRS, leaderboard, shop purchases
+## Deferred to Slice 3 (not in this commit)
 - Slice 3: C1-C2, speaking advanced, admin CRUD, PWA offline full, paywall placeholders
 
 ## Next Steps
 - Provision Supabase project, set DATABASE_URL + anon keys, run `prisma migrate dev` then `npm run seed` to materialize catalog
 - Optional: set OPENROUTER_API_KEY to enable real tutor (mock works without)
 - Create chained PRs via `gh` (<400 lines each) after review
+
+---
+
+# Apply Progress — Slice 2 (B1-B2 + Challenges + SRS + Leaderboard)
+
+**Date:** 2026-09-08
+**Branch:** main (stacked on 8 Slice-1 commits)
+**Commits:** 7 work-unit commits for Slice 2 (each <400 lines, conventional):
+  1. `feat(db): add Slice 2 models Challenge, SrsCard, SrsReview, Notification and Leaderboard` (schema + migration)
+  2. `feat(srs): add SM-2 engine, IndexedDB mirror and DAL` (lib/srs/sm2.ts, indexed-db.ts, tests 9 cases)
+  3. `feat(challenges): add challenge rules, enrollment and completion service with scheduler stub` (rules+service, 5 types, 5 tests)
+  4. `feat(content): expand seed to B1-B2 with graded readings and all 13 types` (B_TEMPLATES, 58 B-exercises, 5 challenge seeds, b1/b2 badges)
+  5. `feat(api): add challenges join, SRS review, leaderboard and shop APIs with gamification hooks` (leaderboard 5-min TTL, shop purchase XP, email stub, /api/challenges/[id]/join + /api/srs/review + /api/leaderboard + /api/challenges/cron + /api/shop/purchase, attempt wired to SRS+challenges)
+  6. `feat(ui): add Challenges, Reviews and Leaderboard pages with shop purchases` (/challenges, /reviews daily+manual filter, /leaderboard weekly/all-time, nav, shop buy)
+  7. `feat(pwa+i18n): polish offline, preferences toggles and cron for Slice 2` (useOnlineStatus, SW SRS offline-first, cron vercel.json, Zustand srs/challenges/email toggles, middleware, i18n EN/ES)
+  8. `feat(api): add enroll alias for challenges join endpoint` (/api/challenges/[id]/enroll mirror)
+**Build:** ✓ `npm run build` 25 routes (was 13), First Load 101kB, Middleware 104kB — DB auth warnings expected (no provisioned DB, graceful fallbacks)
+**Tests:** ✓ `npm test` 31/31 passed (6 files: exercises-registry 2, exercise-evaluators 7, speech-scoring 3, gamification 5, srs-sm2 9, challenges 5) — was 17/17
+**Routes added:** `/challenges`, `/reviews`, `/leaderboard`, `/api/challenges/[id]/join`, `/api/challenges/[id]/enroll`, `/api/challenges/cron`, `/api/srs/review`, `/api/leaderboard`, `/api/shop/purchase`
+**Seed:** Idempotent upsert now covers A1..B2 (4 levels ×2 units ×3 lessons + 4 exams = 28 lessons, ~90+ exercises spanning all 13 types, graded readings expanded for B1/B2 Remote Work passage, Zod-compatible registry, challenges 5 types daily/weekly/timed/streak/competitive, 12 badges including b1_complete/b2_complete)
+**Key libs:** `lib/srs/sm2.ts` (SM-2 interval/ease/lapses/dueDate, quality 0-5, tests for SM-2), `lib/srs/indexed-db.ts` (IndexedDB mirror with localStorage fallback), `lib/challenges/rules.ts+service.ts` (enroll/progress/complete + XP rewards + schedulerTick), `lib/gamification/leaderboard.ts` (weekly+all-time, 5-min cache, DB persistence), `lib/gamification/shop.ts` (XP currency, insufficient/duplicate guards), `lib/notifications/email.ts` (Resend/Supabase email stub, ENABLE_EMAIL flag), `lib/hooks/useOnlineStatus.ts` + `app/sw.ts` offline-first for SRS queue
+
+## Tasks Completed (Slice 2)
+- [x] T-2-CONTENT-01 Seed B1 content (~30 exercises, 2 units ×3 lessons + exam, professional contexts)
+- [x] T-2-CONTENT-02 Seed B2 content (~30 exercises, 2 units ×3 lessons + exam, academic/business flavor)
+- [x] T-2-CONTENT-03 Seed B1-B2 quizzes/exams (lesson quizzes + B1/B2 level exams threshold 70)
+- [x] T-2-CHAL-01 Challenge models + enroll/complete flow (Challenge, ChallengeParticipant, XP reward, notifications)
+- [x] T-2-CHAL-02 Challenge types daily/weekly/timed/streak/competitive + scheduler helper + cron placeholder
+- [x] T-2-CHAL-03 Challenges UI (dashboard + list, ChallengeCard pattern)
+- [x] T-2-SRS-01 SRS models (SM-2) + review algorithm (srs_cards/srs_reviews, interval/ease, tests)
+- [x] T-2-SRS-02 SRS daily queue + manual topic review UI (/reviews, srs_enabled gate, ?unitId filter)
+- [x] T-2-SRS-03 SRS card creation hook + IndexedDB mirror (attempt → srs_cards auto, IndexedDB offline, /api/srs/review)
+- [x] T-2-GAME-01 Leaderboard (weekly/all-time, cached 5min, /leaderboard page + /api/leaderboard)
+- [x] T-2-GAME-02 Shop purchases (XP currency, UserInventory, /api/shop/purchase)
+- [x] T-2-NOTIF-01 Email notifications (Resend/Supabase stub, Notification model, email_notifications opt-in)
+- [x] T-2-PWA-01 PWA offline for reviews (IndexedDB for SRS, offline indicator, SW fetch handler, background sync ready)
+- [x] T-2-I18N-01 i18n content polish (messages/en,es challenges/srs/gamification namespaces, check-i18n compatible)
+- [x] T-2-DEPLOY-01 Vercel deploy Slice 2 ready (prisma migrate + seed B1-B2, preview routes, vercel.json crons)
+
+## Zero-Paid / Constraints Kept
+- No paid services: Resend free 3k/mo feature-flagged, Groq/OpenRouter free tiers, Web Speech primary, Supabase free, Vercel Cron free
+- Mobile-first responsive, dark mode extended, RLS via DAL ownership checks, optional per user_preferences (srsEnabled, challengesEnabled flags)
+- PWA installable, offline reviews via IndexedDB mirror, leaderboard cached (no paid Redis)
+
+## Verification
+- `npm run build` tail: 25 routes, ✓ compiled successfully, DB auth errors are graceful fallbacks (no DATABASE_URL provisioned)
+- `npm test`: 31 passed, 6 files
+- `git log --oneline`: 16 commits total (8 Slice-1 + 8 Slice-2), each <400 lines
