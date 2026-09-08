@@ -13,6 +13,24 @@ export async function middleware(request: NextRequest) {
   }
 
   const pathname = request.nextUrl.pathname;
+
+  // Auth callback must bypass both intl auth checks and Supabase session gate.
+  // Route lives at /auth/callback outside [locale] — no prefix.
+  if (pathname === "/auth/callback" || pathname.startsWith("/auth/callback/")) {
+    return intlResponse;
+  }
+
+  // Fallback: legacy emails that still point code= to "/" (Site URL was localhost).
+  // Rewrite to the real handler so the code is not lost.
+  if (request.nextUrl.searchParams.has("code")) {
+    const pathnameWithoutLocaleForCode = pathname.replace(/^\/(en|es)(?=\/|$)/, "") || "/";
+    if (pathnameWithoutLocaleForCode === "/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/callback";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Strip locale prefix for route checks (/es/login -> /login, /es -> /)
   const pathnameWithoutLocale = pathname.replace(/^\/(en|es)(?=\/|$)/, "") || "/";
 
