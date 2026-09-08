@@ -2,8 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Minimal viable seed: 2 levels (A1,A2) × 2 units per level × 3 lessons per unit × 2-3 exercises per lesson covering all 13 types
-
+// Templates spanning all 13 types, Zod-validated via exercise plugins on write path
 const EXERCISE_TEMPLATES: { type: string; prompt: unknown; solution: unknown; difficulty: number }[] = [
   { type: "fill_blanks", prompt: { text: "She ___ (go) yesterday.", blanks: [{ id: "b1", hint: "past of go" }] }, solution: { answers: { b1: ["went"] } }, difficulty: 1 },
   { type: "ordering", prompt: { tokens: ["she", "went", "yesterday", "to", "school"] }, solution: { order: ["she", "went", "yesterday", "to", "school"] }, difficulty: 1 },
@@ -20,88 +19,88 @@ const EXERCISE_TEMPLATES: { type: string; prompt: unknown; solution: unknown; di
   { type: "pronunciation", prompt: { word: "pronunciation", phonetic: "/prəˌnʌnsiˈeɪʃən/", example: "Good pronunciation is important." }, solution: { word: "pronunciation" }, difficulty: 2 },
 ];
 
-async function main() {
-  console.log("Seeding A1-A2...");
+// B-level heavier templates: longer readings, professional contexts
+const B_TEMPLATES: typeof EXERCISE_TEMPLATES = [
+  { type: "fill_blanks", prompt: { text: "If she ___ (study) harder, she would have passed.", blanks: [{ id: "b1", hint: "past conditional" }] }, solution: { answers: { b1: ["had studied"] } }, difficulty: 3 },
+  { type: "ordering", prompt: { tokens: ["had", "I", "known", "earlier", "would", "come"] }, solution: { order: ["had", "I", "known", "earlier", "would", "come"] }, difficulty: 3 },
+  { type: "transformation", prompt: { instruction: "Rewrite in passive: The team completed the project.", sentence: "The team completed the project." }, solution: { accepted: ["The project was completed by the team."] }, difficulty: 3 },
+  { type: "flashcard", prompt: { front: "sustainable", back: "sostenible", imageUrl: "https://via.placeholder.com/150?text=sustainable" }, solution: { back: "sostenible" }, difficulty: 3 },
+  { type: "matching", prompt: { pairs: [{ id: "1", left: "deadline", right: "fecha limite" }, { id: "2", left: "budget", right: "presupuesto" }] }, solution: { pairs: [{ id: "1", left: "deadline", right: "fecha limite" }, { id: "2", left: "budget", right: "presupuesto" }] }, difficulty: 3 },
+  { type: "listening_tts", prompt: { text: "Could you please elaborate on the quarterly results and forecast?", question: "What was requested?", options: ["Elaborate on results", "Cancel meeting"] }, solution: { answer: "Elaborate on results" }, difficulty: 3 },
+  { type: "dictation", prompt: { text: "The presentation was postponed due to unforeseen circumstances", playsAllowed: 2 }, solution: { text: "The presentation was postponed due to unforeseen circumstances" }, difficulty: 3 },
+  { type: "comprehension", prompt: { passage: "Despite the economic downturn, the company maintained growth by diversifying its portfolio.", question: "How did the company maintain growth?", options: ["Diversifying portfolio", "Cutting staff"] }, solution: { answer: "Diversifying portfolio" }, difficulty: 3 },
+  { type: "graded_reading", prompt: { title: "The Future of Remote Work", passage: "Remote work has fundamentally reshaped professional life. In 2020, companies scrambled to adapt; by 2026, hybrid models dominate. Studies show productivity remained stable, but collaboration requires intentional design. Successful teams set clear async norms, document decisions, and protect focus time. The challenge is not technology but culture.", vocab: [{ word: "hybrid", definition: "mixed" }, { word: "async", definition: "not simultaneous" }], questions: [{ id: "q1", question: "When did remote work surge?", options: ["2020", "2015"], answer: "2020" }, { id: "q2", question: "Main challenge?", options: ["Culture", "Laptops"], answer: "Culture" }] }, solution: { answers: { q1: "2020", q2: "Culture" } }, difficulty: 4 },
+  { type: "writing_prompt", prompt: { prompt: "Discuss advantages and disadvantages of remote work (120-150 words)", minWords: 80, maxWords: 200 }, solution: { sampleAnswer: "Remote work offers flexibility but requires discipline..." }, difficulty: 4 },
+  { type: "speaking_record", prompt: { text: "I would like to present our quarterly performance and outlook.", instruction: "Present the quarterly overview" }, solution: { reference: "I would like to present our quarterly performance and outlook." }, difficulty: 3 },
+  { type: "shadowing", prompt: { reference: "We need to align on the deliverables before the deadline.", speed: 1 }, solution: { reference: "We need to align on the deliverables before the deadline." }, difficulty: 3 },
+  { type: "pronunciation", prompt: { word: "entrepreneur", phonetic: "/ˌɒntrəprəˈnɜː/", example: "She is a successful entrepreneur." }, solution: { word: "entrepreneur" }, difficulty: 4 },
+];
 
-  for (const levelCode of ["A1", "A2"] as const) {
-    const level = await prisma.level.upsert({
-      where: { code: levelCode },
-      update: {},
-      create: { code: levelCode, title: levelCode === "A1" ? "Beginner (A1)" : "Elementary (A2)", description: `CEFR ${levelCode} - ${levelCode === "A1" ? "Beginner" : "Elementary"}`, orderIndex: levelCode === "A1" ? 1 : 2 },
-    });
+const LEVEL_META: Record<string, { title: string; description: string; orderIndex: number; unitNames: [string, string] }> = {
+  A1: { title: "Beginner (A1)", description: "CEFR A1 - Beginner", orderIndex: 1, unitNames: ["Basics", "Daily Life"] },
+  A2: { title: "Elementary (A2)", description: "CEFR A2 - Elementary", orderIndex: 2, unitNames: ["Travel", "Work Basics"] },
+  B1: { title: "Intermediate (B1)", description: "CEFR B1 - Intermediate", orderIndex: 3, unitNames: ["Professional Communication", "Culture & Media"] },
+  B2: { title: "Upper Intermediate (B2)", description: "CEFR B2 - Upper Intermediate", orderIndex: 4, unitNames: ["Academic & Business", "Critical Thinking"] },
+};
 
-    for (let ui = 1; ui <= 2; ui++) {
-      const unitId = `${levelCode}-unit-${ui}`;
-      // use deterministic uuid-like string for idempotency via findFirst + create
-      let unit = await prisma.unit.findFirst({ where: { levelId: level.id, orderIndex: ui } });
-      if (!unit) {
-        unit = await prisma.unit.create({ data: { levelId: level.id, title: `${levelCode} Unit ${ui}: ${["Basics", "Daily Life"][ui - 1]}`, description: `Unit ${ui} for ${levelCode}`, orderIndex: ui } });
-      }
+async function seedLevel(levelCode: string) {
+  const meta = LEVEL_META[levelCode]!;
+  const level = await prisma.level.upsert({ where: { code: levelCode as never }, update: {}, create: { code: levelCode as never, title: meta.title, description: meta.description, orderIndex: meta.orderIndex } });
 
-      for (let li = 1; li <= 3; li++) {
-        const isQuiz = li === 3; // last lesson per unit is quiz
-        let lesson = await prisma.lesson.findFirst({ where: { unitId: unit.id, orderIndex: li } });
-        if (!lesson) {
-          lesson = await prisma.lesson.create({
-            data: { unitId: unit.id, title: `Lesson ${li}${isQuiz ? " — Quiz" : ""}`, objectives: `Objectives for ${levelCode} U${ui} L${li}`, orderIndex: li, estimatedMinutes: 10, isQuiz, isExam: false },
-          });
-        }
+  const templates = levelCode.startsWith("B") ? B_TEMPLATES : EXERCISE_TEMPLATES;
+  const perLessonCount = levelCode.startsWith("B") ? 4 : 3;
 
-        // create 3 exercises per lesson rotating through types
-        const startIdx = ((ui - 1) * 3 + (li - 1) * 3) % EXERCISE_TEMPLATES.length;
-        for (let ei = 0; ei < 3; ei++) {
-          const tmpl = EXERCISE_TEMPLATES[(startIdx + ei) % EXERCISE_TEMPLATES.length]!;
-          const existing = await prisma.exercise.findFirst({ where: { lessonId: lesson.id, type: tmpl.type as never } });
-          if (existing) continue;
-          await prisma.exercise.create({
-            data: {
-              lessonId: lesson.id,
-              type: tmpl.type as never,
-              difficulty: tmpl.difficulty,
-              prompt: tmpl.prompt as never,
-              solution: tmpl.solution as never,
-              aiGenerated: false,
-            },
-          });
-        }
-      }
-    }
-
-    // Level exam
-    let examUnit = await prisma.unit.findFirst({ where: { levelId: level.id, orderIndex: 99 } });
-    if (!examUnit) {
-      examUnit = await prisma.unit.create({ data: { levelId: level.id, title: `${levelCode} Final Exam`, description: `Final exam for ${levelCode}`, orderIndex: 99 } });
-    }
-    let examLesson = await prisma.lesson.findFirst({ where: { unitId: examUnit.id, orderIndex: 1 } });
-    if (!examLesson) {
-      examLesson = await prisma.lesson.create({ data: { unitId: examUnit.id, title: `${levelCode} Final Exam`, objectives: `Comprehensive exam for ${levelCode}`, orderIndex: 1, estimatedMinutes: 30, isQuiz: false, isExam: true } });
-    }
-    if ((await prisma.exercise.count({ where: { lessonId: examLesson.id } })) === 0) {
-      for (let i = 0; i < 5; i++) {
-        const tmpl = EXERCISE_TEMPLATES[i % EXERCISE_TEMPLATES.length]!;
-        await prisma.exercise.create({ data: { lessonId: examLesson.id, type: tmpl.type as never, difficulty: 3, prompt: tmpl.prompt as never, solution: tmpl.solution as never } });
+  for (let ui = 1; ui <= 2; ui++) {
+    let unit = await prisma.unit.findFirst({ where: { levelId: level.id, orderIndex: ui } });
+    if (!unit) unit = await prisma.unit.create({ data: { levelId: level.id, title: `${levelCode} Unit ${ui}: ${meta.unitNames[ui - 1]}`, description: `Unit ${ui} for ${levelCode}`, orderIndex: ui } });
+    for (let li = 1; li <= 3; li++) {
+      const isQuiz = li === 3;
+      let lesson = await prisma.lesson.findFirst({ where: { unitId: unit.id, orderIndex: li } });
+      if (!lesson) lesson = await prisma.lesson.create({ data: { unitId: unit.id, title: `Lesson ${li}${isQuiz ? " — Quiz" : ""}`, objectives: `Objectives for ${levelCode} U${ui} L${li}`, orderIndex: li, estimatedMinutes: levelCode.startsWith("B") ? 15 : 10, isQuiz, isExam: false } });
+      const startIdx = ((ui - 1) * perLessonCount + (li - 1) * perLessonCount) % templates.length;
+      for (let ei = 0; ei < perLessonCount; ei++) {
+        const tmpl = templates[(startIdx + ei) % templates.length]!;
+        const existing = await prisma.exercise.findFirst({ where: { lessonId: lesson.id, type: tmpl.type as never } });
+        if (existing) continue;
+        await prisma.exercise.create({ data: { lessonId: lesson.id, type: tmpl.type as never, difficulty: tmpl.difficulty, prompt: tmpl.prompt as never, solution: tmpl.solution as never, aiGenerated: false } });
       }
     }
   }
+  // Level exam unit
+  let examUnit = await prisma.unit.findFirst({ where: { levelId: level.id, orderIndex: 99 } });
+  if (!examUnit) examUnit = await prisma.unit.create({ data: { levelId: level.id, title: `${levelCode} Final Exam`, description: `Final exam for ${levelCode}`, orderIndex: 99 } });
+  let examLesson = await prisma.lesson.findFirst({ where: { unitId: examUnit.id, orderIndex: 1 } });
+  if (!examLesson) examLesson = await prisma.lesson.create({ data: { unitId: examUnit.id, title: `${levelCode} Final Exam`, objectives: `Comprehensive exam for ${levelCode}`, orderIndex: 1, estimatedMinutes: 30, isQuiz: false, isExam: true } });
+  if ((await prisma.exercise.count({ where: { lessonId: examLesson.id } })) === 0) {
+    for (let i = 0; i < 5; i++) {
+      const tmpl = templates[i % templates.length]!;
+      await prisma.exercise.create({ data: { lessonId: examLesson.id, type: tmpl.type as never, difficulty: levelCode.startsWith("B") ? 4 : 3, prompt: tmpl.prompt as never, solution: tmpl.solution as never } });
+    }
+  }
+}
 
-  // Badges
+async function main() {
+  console.log("Seeding A1..B2...");
+
+  for (const code of ["A1", "A2", "B1", "B2"] as const) await seedLevel(code);
+
+  // Badges B-level
   const badges = [
     { code: "first_lesson", title: "First Step", description: "Complete your first lesson", icon: "🎯", rule: { type: "lessons_completed", gte: 1 } },
     { code: "streak_3", title: "3-Day Streak", description: "3 days in a row", icon: "🔥", rule: { type: "streak", gte: 3 } },
     { code: "streak_7", title: "Week Warrior", description: "7-day streak", icon: "🏆", rule: { type: "streak", gte: 7 } },
     { code: "a1_complete", title: "A1 Complete", description: "Pass A1 exam", icon: "🎓", rule: { type: "level_pass", equals: "A1" } },
     { code: "a2_complete", title: "A2 Complete", description: "Pass A2 exam", icon: "🎓", rule: { type: "level_pass", equals: "A2" } },
+    { code: "b1_complete", title: "B1 Complete", description: "Pass B1 exam", icon: "🎓", rule: { type: "level_pass", equals: "B1" } },
+    { code: "b2_complete", title: "B2 Complete", description: "Pass B2 exam", icon: "🎓", rule: { type: "level_pass", equals: "B2" } },
     { code: "xp_100", title: "100 XP", description: "Earn 100 XP", icon: "⭐", rule: { type: "xp", gte: 100 } },
     { code: "xp_500", title: "500 XP", description: "Earn 500 XP", icon: "🌟", rule: { type: "xp", gte: 500 } },
     { code: "ten_lessons", title: "Dedicated", description: "Complete 10 lessons", icon: "📚", rule: { type: "lessons_completed", gte: 10 } },
     { code: "quiz_master", title: "Quiz Master", description: "Pass 5 quizzes", icon: "🧠", rule: { type: "lessons_completed", gte: 5 } },
     { code: "explorer", title: "Explorer", description: "Try all exercise types", icon: "🗺️", rule: { type: "lessons_completed", gte: 3 } },
   ];
-  for (const b of badges) {
-    await prisma.badge.upsert({ where: { code: b.code }, update: {}, create: b as never });
-  }
+  for (const b of badges) await prisma.badge.upsert({ where: { code: b.code }, update: {}, create: b as never });
 
-  // Shop items
   const shopItems = [
     { title: "Streak Freeze", description: "Protect your streak for one day", priceXp: 100, cosmeticType: "freeze", assetUrl: null, rarity: "common" },
     { title: "Avatar Hat", description: "Cool hat for your avatar", priceXp: 150, cosmeticType: "avatar", assetUrl: null, rarity: "common" },
@@ -117,16 +116,31 @@ async function main() {
     if (!exists) await prisma.shopItem.create({ data: item as never });
   }
 
-  // Placement test
+  // Challenges seed (all 5 types, future-friendly windows, idempotent by title)
+  const now = new Date();
+  const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
+  const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate()+7);
+  const challengesSeed = [
+    { title: "Daily Sprint — Complete 5 exercises", type: "daily" as const, description: "Complete 5 exercises today", rule: { metric: "exercises", count: 5 }, startAt: new Date(now.setHours(0,0,0,0)), endAt: tomorrow, rewardXp: 30 },
+    { title: "Weekly Marathon — 25 exercises", type: "weekly" as const, description: "Complete 25 exercises this week", rule: { metric: "exercises", count: 25 }, startAt: new Date(), endAt: weekEnd, rewardXp: 120 },
+    { title: "Timed Blitz — 10 in 30 min", type: "timed" as const, description: "Complete 10 exercises in one timed session", rule: { metric: "exercises", count: 10 }, startAt: new Date(), endAt: weekEnd, rewardXp: 50 },
+    { title: "Streak Keeper — 3 days", type: "streak" as const, description: "Maintain a 3-day streak", rule: { metric: "streak", count: 3 }, startAt: new Date(), endAt: weekEnd, rewardXp: 80 },
+    { title: "Leaderboard Sprint — Top 10 XP", type: "competitive" as const, description: "Earn 200 XP this week and rank top 10", rule: { metric: "xp", count: 200 }, startAt: new Date(), endAt: weekEnd, rewardXp: 150 },
+  ];
+  for (const c of challengesSeed) {
+    const exists = await prisma.challenge.findFirst({ where: { title: c.title } });
+    if (!exists) await prisma.challenge.create({ data: { id: crypto.randomUUID(), ...c } as never });
+  }
+
   let pt = await prisma.placementTest.findFirst({ where: { title: "Placement Test" } });
   if (!pt) pt = await prisma.placementTest.create({ data: { title: "Placement Test", isActive: true } });
   if ((await prisma.placementQuestion.count({ where: { testId: pt.id } })) === 0) {
     for (let i = 0; i < 6; i++) {
-      await prisma.placementQuestion.create({ data: { testId: pt.id, levelHint: (["A1", "A2", "A1", "A2", "A1", "A2"] as const)[i]! as never, prompt: { question: `Placement question ${i + 1}` }, solution: { answer: "A" }, weight: 1 } });
+      await prisma.placementQuestion.create({ data: { testId: pt.id, levelHint: (["A1", "A2", "B1", "B2", "A1", "B2"] as const)[i]! as never, prompt: { question: `Placement question ${i + 1}` }, solution: { answer: "A" }, weight: 1 } });
     }
   }
 
-  console.log("Seed complete");
+  console.log("Seed complete A1..B2 plus challenges");
 }
 
 main().catch((e) => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());
