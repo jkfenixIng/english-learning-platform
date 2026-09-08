@@ -51,14 +51,16 @@ enum ChallengeType {
 }
 
 model User {
-  id        String   @id @db.Uuid
-  email     String   @unique
-  name      String
-  dob       DateTime? @db.Date
-  gender    String?
-  role      String   @default("student")
-  locale    String   @default("en")
-  createdAt DateTime @default(now()) @map("created_at")
+  id               String   @id @db.Uuid
+  email            String   @unique
+  name             String
+  dob              DateTime? @db.Date
+  gender           String?
+  role             String   @default("student")
+  locale           String   @default("en")
+  subscriptionTier String   @default("free") @map("subscription_tier")
+  isPremium        Boolean  @default(false) @map("is_premium")
+  createdAt        DateTime @default(now()) @map("created_at")
 
   preferences UserPreferences?
   attempts    Attempt[]
@@ -200,6 +202,7 @@ model Badge {
   description String
   icon        String      @default("🏆")
   rule        Json?
+  isPremium   Boolean     @default(false) @map("is_premium")
   users       UserBadge[]
 
   @@map("badges")
@@ -224,6 +227,7 @@ model ShopItem {
   cosmeticType  String          @map("cosmetic_type")
   assetUrl      String?         @map("asset_url")
   rarity        String          @default("common")
+  isPremium     Boolean         @default(false) @map("is_premium")
   inventory     UserInventory[]
 
   @@map("shop_items")
