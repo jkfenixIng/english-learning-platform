@@ -63,6 +63,54 @@
   --color-ring: oklch(0.66 0.11 285);
 }
 
+/* Shop cosmetic themes — applied via data-theme on html, synced from UserInventory equipped */
+html[data-theme="ocean"] {
+  --color-primary: oklch(0.6 0.14 220);
+  --color-primary-500: oklch(0.6 0.14 220);
+  --color-background: #f0f9ff;
+  --color-foreground: #0c4a6e;
+  --color-card: #e0f2fe;
+  --color-border: #bae6fd;
+}
+html[data-theme="midnight"] {
+  color-scheme: dark;
+  --color-primary: oklch(0.55 0.12 265);
+  --color-background: #020617;
+  --color-foreground: #e2e8f0;
+  --color-card: #0f172a;
+  --color-border: #1e293b;
+  --color-muted: #0f172a;
+}
+html[data-theme="forest"] {
+  --color-primary: oklch(0.55 0.13 145);
+  --color-primary-500: oklch(0.55 0.13 145);
+  --color-background: #f0fdf4;
+  --color-foreground: #14532d;
+  --color-card: #dcfce7;
+  --color-border: #bbf7d0;
+}
+html[data-theme="sunset"] {
+  --color-primary: oklch(0.62 0.15 35);
+  --color-primary-500: oklch(0.62 0.15 35);
+  --color-background: #fff7ed;
+  --color-foreground: #7c2d12;
+  --color-card: #ffedd5;
+  --color-border: #fed7aa;
+}
+html[data-theme="aurora"] {
+  color-scheme: dark;
+  --color-primary: oklch(0.65 0.18 300);
+  --color-background: #1a0b2e;
+  --color-foreground: #fdf4ff;
+  --color-card: #2e1065;
+  --color-border: #6b21a8;
+}
+html[data-theme="ocean"].dark,
+html[data-theme="forest"].dark,
+html[data-theme="sunset"].dark {
+  color-scheme: light;
+}
+
 * {
   border-color: var(--color-border);
 }

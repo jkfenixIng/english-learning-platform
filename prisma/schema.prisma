@@ -265,11 +265,13 @@ model ShopItem {
 }
 
 model UserInventory {
-  userId     String   @map("user_id") @db.Uuid
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shopItemId String   @map("shop_item_id") @db.Uuid
-  shopItem   ShopItem @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
+  userId     String    @map("user_id") @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopItemId String    @map("shop_item_id") @db.Uuid
+  shopItem   ShopItem  @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
   purchasedAt DateTime @default(now()) @map("purchased_at")
+  equipped   Boolean   @default(false)
+  equippedAt DateTime? @map("equipped_at")
 
   @@id([userId, shopItemId])
   @@map("user_inventory")

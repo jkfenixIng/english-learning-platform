@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils/cn";
+import { EquippedAvatar, ThemeSync } from "../shop/EquippedAvatar";
 
 type NavItem = {
   href: string;
@@ -272,6 +273,7 @@ export function AppSidebar({
 
   return (
     <>
+      <ThemeSync />
       {/* Backdrop mobile only */}
       <div
         aria-hidden={!mobileOpen}
@@ -556,9 +558,7 @@ export function AppSidebar({
               collapsed && "lg:justify-center lg:px-2 lg:py-2.5",
             )}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700">
-              E
-            </div>
+            <EquippedAvatar />
             <div className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>
               <div className="truncate text-xs font-semibold text-slate-900 dark:text-white">
                 {tSidebar("learnerRole")}

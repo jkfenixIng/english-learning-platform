@@ -54,8 +54,9 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
       },
     ];
 
-  // Fetch user XP via Supabase auth — no fallback UUID
+  // Fetch user XP + inventory via Supabase auth
   let userXp = 0;
+  let inventory: unknown[] = [];
   try {
     const supabase = await createClient();
     const {
@@ -64,9 +65,18 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
     if (user?.id) {
       const streak = await prisma.userStreak.findUnique({ where: { userId: user.id } });
       userXp = (streak as unknown as { xp: number } | null)?.xp ?? 0;
+      try {
+        const inv = await prisma.userInventory.findMany({
+          where: { userId: user.id },
+          include: { shopItem: true },
+        });
+        inventory = inv as unknown as typeof inventory;
+      } catch {
+        inventory = [];
+      }
     }
   } catch {
-    // unauthenticated or db unavailable — xp stays 0
+    // unauthenticated or db unavailable
   }
 
   return (
@@ -76,7 +86,7 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
       <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
         {t("yourXp", { xp: userXp })}
       </p>
-      <ShopPaywallClient items={items} userXp={userXp} />
+      <ShopPaywallClient items={items} userXp={userXp} initialInventory={inventory as never} />
     </div>
   );
 }

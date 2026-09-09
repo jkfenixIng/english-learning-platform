@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware";
 
 export type NavigationMode = "linear" | "free";
 export type ProgressionMode = "unlocked" | "locked";
-export type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "ocean" | "midnight" | "forest" | "sunset" | "aurora";
 export type Locale = "en" | "es";
 
 interface PreferencesState {
