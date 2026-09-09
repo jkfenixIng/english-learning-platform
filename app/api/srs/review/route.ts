@@ -25,8 +25,19 @@ export async function POST(req: NextRequest) {
   if (!Number.isInteger(q) || q < 0 || q > 5)
     return NextResponse.json({ error: "quality must be 0-5" }, { status: 400 });
 
-  // SRS opt-in guard
-  const userId = body.userId ?? "00000000-0000-0000-0000-000000000000";
+  // SRS opt-in guard — prefer authenticated user, keep dummy fallback for unauth/demo
+  let userId = body.userId ?? null;
+  if (!userId) {
+    try {
+      const { createClient } = await import("../../../../lib/supabase/server");
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) userId = user.id;
+    } catch {}
+  }
+  userId = userId ?? "00000000-0000-0000-0000-000000000000";
   try {
     const { prisma } = await import("../../../../lib/db");
     const pref = await prisma.userPreferences.findUnique({ where: { userId } });
