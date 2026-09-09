@@ -967,7 +967,7 @@ async function main() {
       description: "Protect your streak for one day",
       priceXp: 100,
       cosmeticType: "freeze",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/streak-freeze.png",
       rarity: "common",
       isPremium: false,
     },
@@ -976,7 +976,7 @@ async function main() {
       description: "Cool hat for your avatar",
       priceXp: 150,
       cosmeticType: "avatar",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/avatar-hat.png",
       rarity: "common",
       isPremium: false,
     },
@@ -985,7 +985,7 @@ async function main() {
       description: "Shiny frame",
       priceXp: 200,
       cosmeticType: "frame",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/avatar-frame-gold.png",
       rarity: "rare",
       isPremium: false,
     },
@@ -994,7 +994,7 @@ async function main() {
       description: "Ocean theme",
       priceXp: 250,
       cosmeticType: "theme",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/theme-ocean.png",
       rarity: "rare",
       isPremium: false,
     },
@@ -1003,7 +1003,7 @@ async function main() {
       description: "Double XP for 24h",
       priceXp: 300,
       cosmeticType: "boost",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/xp-boost.png",
       rarity: "epic",
       isPremium: false,
     },
@@ -1012,7 +1012,7 @@ async function main() {
       description: "Cute companion",
       priceXp: 400,
       cosmeticType: "pet",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/avatar-pet.png",
       rarity: "epic",
       isPremium: false,
     },
@@ -1021,7 +1021,7 @@ async function main() {
       description: "Show off",
       priceXp: 500,
       cosmeticType: "title",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/legendary-title.png",
       rarity: "legendary",
       isPremium: false,
     },
@@ -1030,7 +1030,7 @@ async function main() {
       description: "Celebration effect",
       priceXp: 350,
       cosmeticType: "effect",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/confetti-effect.png",
       rarity: "rare",
       isPremium: false,
     },
@@ -1039,7 +1039,7 @@ async function main() {
       description: "Premium cosmetic — paywall placeholder",
       priceXp: 800,
       cosmeticType: "frame",
-      assetUrl: null,
+      assetUrl: "/lesson-images/shop/avatar-frame-diamond.png",
       rarity: "legendary",
       isPremium: true,
     },
@@ -1047,6 +1047,12 @@ async function main() {
   for (const item of shopItems) {
     const exists = await prisma.shopItem.findFirst({ where: { title: item.title } });
     if (!exists) await prisma.shopItem.create({ data: item as never });
+    else if (!(exists as unknown as { assetUrl: string | null }).assetUrl) {
+      await prisma.shopItem.update({
+        where: { id: (exists as unknown as { id: string }).id },
+        data: { assetUrl: item.assetUrl } as never,
+      });
+    }
   }
 
   // Challenges seed (all 5 types, future-friendly windows, idempotent by title)

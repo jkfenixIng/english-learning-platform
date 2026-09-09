@@ -125,13 +125,19 @@
     "premium": "Premium",
     "unlockPremium": "Unlock — Premium",
     "buy": "Buy",
+    "buying": "Buying…",
     "priceXp": "{price} XP",
     "ariaBuy": "Buy {title}",
     "ariaUnlock": "Unlock premium {title}",
     "shopItemLabel": "Shop item {title}",
     "fallbackStreakFreeze": "Streak Freeze",
     "fallbackAvatarHat": "Avatar Hat",
-    "fallbackPremiumFrame": "Premium Badge Frame — Diamond"
+    "fallbackPremiumFrame": "Premium Badge Frame — Diamond",
+    "insufficientXp": "Not enough XP",
+    "purchaseSuccess": "Purchased {title}!",
+    "purchaseFailed": "Purchase failed — try again",
+    "yourXp": "Your XP: {xp}",
+    "owned": "Owned"
   },
   "paywall": {
     "premiumLocked": "Premium locked",

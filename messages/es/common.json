@@ -125,13 +125,19 @@
     "premium": "Premium",
     "unlockPremium": "Desbloquear — Premium",
     "buy": "Comprar",
+    "buying": "Comprando…",
     "priceXp": "{price} XP",
     "ariaBuy": "Comprar {title}",
     "ariaUnlock": "Desbloquear premium {title}",
     "shopItemLabel": "Artículo {title}",
     "fallbackStreakFreeze": "Congelar racha",
     "fallbackAvatarHat": "Gorro avatar",
-    "fallbackPremiumFrame": "Marco de insignia premium — Diamante"
+    "fallbackPremiumFrame": "Marco de insignia premium — Diamante",
+    "insufficientXp": "XP insuficiente",
+    "purchaseSuccess": "¡Comprado {title}!",
+    "purchaseFailed": "Error al comprar — intenta de nuevo",
+    "yourXp": "Tu XP: {xp}",
+    "owned": "Adquirido"
   },
   "paywall": {
     "premiumLocked": "Contenido premium bloqueado",
