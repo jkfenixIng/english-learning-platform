@@ -113,6 +113,15 @@
     "transcriptDiff": "Referencia vs tú",
     "score": "Puntaje"
   },
+  "dashboard": {
+    "welcome": "¡Bienvenido de nuevo!",
+    "subtitle": "Continúa tu viaje con el inglés",
+    "levels": "Niveles",
+    "quickActions": "Acciones rápidas",
+    "startA1": "Empezar A1",
+    "askTutor": "Preguntar al Tutor",
+    "visitShop": "Visitar Tienda"
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Algo salió mal",

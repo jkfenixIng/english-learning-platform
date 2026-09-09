@@ -78,6 +78,11 @@ export async function middleware(request: NextRequest) {
       setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         supabaseResponse = NextResponse.next({ request });
+        // Preserve cookies/headers set by intlMiddleware (NEXT_LOCALE, etc.)
+        // next-intl sets locale via cookies/headers on intlResponse — a fresh NextResponse would drop them.
+        for (const c of intlResponse.cookies.getAll()) {
+          supabaseResponse.cookies.set(c.name, c.value, c as never);
+        }
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options as never),
         );

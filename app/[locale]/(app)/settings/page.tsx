@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { usePreferencesStore } from "../../../../lib/stores/preferences";
 import { useOnlineStatus } from "../../../../lib/hooks/useOnlineStatus";
 
@@ -8,6 +9,9 @@ type AiSettings = { provider: string; model: string | null; enabled: boolean; ha
 
 export default function SettingsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const currentLocale = useLocale();
+  const t = useTranslations("settings");
   const {
     navigationMode,
     progressionMode,
@@ -25,6 +29,14 @@ export default function SettingsPage() {
     setEmailNotifications,
   } = usePreferencesStore();
   const online = useOnlineStatus();
+
+  // Keep Zustand locale in sync with the actual URL locale (as-needed: en has no prefix, es has /es)
+  // Without this, direct navigation to /es/settings shows Zustand default "en" as active.
+  useEffect(() => {
+    if (currentLocale !== locale) {
+      setLocale(currentLocale as "en" | "es");
+    }
+  }, [currentLocale, locale, setLocale]);
 
   const [ai, setAi] = useState<AiSettings>({
     provider: "mock",
@@ -63,7 +75,18 @@ export default function SettingsPage() {
   const handleLocaleChange = (l: "en" | "es") => {
     setLocale(l);
     document.cookie = `NEXT_LOCALE=${l}; path=/; max-age=31536000; SameSite=Lax`;
-    router.refresh();
+    // With localePrefix: as-needed, en has no prefix, es has /es.
+    // Cookie alone + router.refresh() does NOT change the URL prefix, and URL prefix wins over cookie.
+    // So we must push to the prefixed path when switching to es, and strip it when switching to en.
+    const stripped = pathname.replace(/^\/(en|es)(?=\/|$)/, "") || "/";
+    const normalized = stripped.startsWith("/") ? stripped : `/${stripped}`;
+    const target = l === "es" ? `/es${normalized === "/" ? "" : normalized}` : normalized;
+    const finalTarget = target === "" ? "/" : target;
+    if (finalTarget !== pathname) {
+      router.push(finalTarget);
+    } else {
+      router.refresh();
+    }
   };
 
   const saveAi = async () => {
@@ -109,10 +132,10 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">Settings</h1>
+      <h1 className="text-xl font-bold">{t("title")}</h1>
       <div className="space-y-4 rounded-xl border bg-white p-4 dark:bg-gray-900">
         <div>
-          <p className="text-sm font-medium">Navigation mode</p>
+          <p className="text-sm font-medium">{t("navigationMode")}</p>
           <div className="mt-2 flex gap-2">
             {(["free", "linear"] as const).map((m) => (
               <button
@@ -120,13 +143,13 @@ export default function SettingsPage() {
                 onClick={() => setNavigationMode(m)}
                 className={`rounded px-3 py-1 text-sm capitalize ${navigationMode === m ? "bg-primary text-white" : "border"}`}
               >
-                {m}
+                {m === "free" ? t("free") : t("linear")}
               </button>
             ))}
           </div>
         </div>
         <div>
-          <p className="text-sm font-medium">Progression</p>
+          <p className="text-sm font-medium">{t("progressionMode")}</p>
           <div className="mt-2 flex gap-2">
             {(["unlocked", "locked"] as const).map((m) => (
               <button
@@ -134,19 +157,19 @@ export default function SettingsPage() {
                 onClick={() => setProgressionMode(m)}
                 className={`rounded px-3 py-1 text-sm capitalize ${progressionMode === m ? "bg-primary text-white" : "border"}`}
               >
-                {m}
+                {m === "unlocked" ? t("unlocked") : t("locked")}
               </button>
             ))}
           </div>
         </div>
         <div>
-          <p className="text-sm font-medium">Language</p>
+          <p className="text-sm font-medium">{t("locale")}</p>
           <div className="mt-2 flex gap-2">
             {(["en", "es"] as const).map((l) => (
               <button
                 key={l}
                 onClick={() => handleLocaleChange(l)}
-                className={`rounded px-3 py-1 text-sm uppercase ${locale === l ? "bg-primary text-white" : "border"}`}
+                className={`rounded px-3 py-1 text-sm uppercase ${currentLocale === l ? "bg-primary text-white" : "border"}`}
               >
                 {l}
               </button>
@@ -154,22 +177,22 @@ export default function SettingsPage() {
           </div>
         </div>
         <div>
-          <p className="text-sm font-medium">Theme</p>
+          <p className="text-sm font-medium">{t("theme")}</p>
           <div className="mt-2 flex gap-2">
-            {(["light", "dark"] as const).map((t) => (
+            {(["light", "dark"] as const).map((tKey) => (
               <button
-                key={t}
-                onClick={() => setTheme(t)}
-                className={`rounded px-3 py-1 text-sm capitalize ${theme === t ? "bg-primary text-white" : "border"}`}
+                key={tKey}
+                onClick={() => setTheme(tKey)}
+                className={`rounded px-3 py-1 text-sm capitalize ${theme === tKey ? "bg-primary text-white" : "border"}`}
               >
-                {t}
+                {tKey === "light" ? t("light") : t("dark")}
               </button>
             ))}
           </div>
         </div>
         <div className="space-y-3 border-t pt-4">
           <label className="flex items-center justify-between text-sm">
-            <span>SRS (spaced repetition)</span>
+            <span>{t("srsEnabled")}</span>
             <input
               type="checkbox"
               checked={srsEnabled}
@@ -177,7 +200,7 @@ export default function SettingsPage() {
             />
           </label>
           <label className="flex items-center justify-between text-sm">
-            <span>Challenges opt-in</span>
+            <span>{t("challengesEnabled")}</span>
             <input
               type="checkbox"
               checked={challengesEnabled}
@@ -185,7 +208,7 @@ export default function SettingsPage() {
             />
           </label>
           <label className="flex items-center justify-between text-sm">
-            <span>Email notifications (Resend)</span>
+            <span>{t("emailNotifications")}</span>
             <input
               type="checkbox"
               checked={emailNotifications}

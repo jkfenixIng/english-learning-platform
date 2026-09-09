@@ -113,6 +113,15 @@
     "transcriptDiff": "Reference vs you",
     "score": "Score"
   },
+  "dashboard": {
+    "welcome": "Welcome back!",
+    "subtitle": "Continue your English journey",
+    "levels": "Levels",
+    "quickActions": "Quick actions",
+    "startA1": "Start A1",
+    "askTutor": "Ask Tutor",
+    "visitShop": "Visit Shop"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
