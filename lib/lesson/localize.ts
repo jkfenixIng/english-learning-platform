@@ -22,22 +22,85 @@ export const LEVEL_DESCRIPTIONS_ES: Record<string, string> = {
   C2: "MCER C2 — Dominio y matices",
 };
 
-export const UNIT_NAMES_ES: Record<string, [string, string]> = {
-  A1: ["Fundamentos", "Vida diaria"],
-  A2: ["Viajes", "Trabajo básico"],
-  B1: ["Comunicación profesional", "Cultura y medios"],
-  B2: ["Negocios y academia", "Pensamiento crítico"],
-  C1: ["Discurso académico", "Negociación profesional"],
-  C2: ["Matices, modismos y registro", "Dominio e investigación"],
+export const UNIT_NAMES_ES: Record<string, string[]> = {
+  A1: ["Fundamentos", "Saludos", "Familia", "Comida y bebida", "Hogar", "Rutina diaria"],
+  A2: [
+    "Viajes",
+    "Compras",
+    "Trabajo básico",
+    "Salud y forma física",
+    "Clima y estaciones",
+    "Aficiones",
+  ],
+  B1: [
+    "Comunicación profesional",
+    "Cultura y medios",
+    "Educación y aprendizaje",
+    "Medio ambiente",
+    "Tecnología",
+    "Cuestiones sociales",
+  ],
+  B2: [
+    "Negocios y academia",
+    "Pensamiento crítico",
+    "Ciencia e innovación",
+    "Arte y cultura",
+    "Retos globales",
+    "Liderazgo",
+  ],
+  C1: [
+    "Discurso académico",
+    "Negociación profesional",
+    "Métodos de investigación",
+    "Ética y filosofía",
+    "Medios y persuasión",
+    "Innovación y estrategia",
+  ],
+  C2: [
+    "Matices, modismos y registro",
+    "Dominio e investigación",
+    "Estilística avanzada",
+    "Diplomacia intercultural",
+    "Publicación académica",
+    "Liderazgo ejecutivo",
+  ],
 };
 
-export const UNIT_NAMES_EN: Record<string, [string, string]> = {
-  A1: ["Basics", "Daily Life"],
-  A2: ["Travel", "Work Basics"],
-  B1: ["Professional Communication", "Culture & Media"],
-  B2: ["Academic & Business", "Critical Thinking"],
-  C1: ["Academic Discourse", "Professional Negotiation"],
-  C2: ["Nuance, Idioms & Register", "Mastery & Research"],
+export const UNIT_NAMES_EN: Record<string, string[]> = {
+  A1: ["Basics", "Greetings", "Family", "Food & Drink", "Home", "Daily Routine"],
+  A2: ["Travel", "Shopping", "Work Basics", "Health & Fitness", "Weather & Seasons", "Hobbies"],
+  B1: [
+    "Professional Communication",
+    "Culture & Media",
+    "Education & Learning",
+    "Environment",
+    "Technology",
+    "Social Issues",
+  ],
+  B2: [
+    "Academic & Business",
+    "Critical Thinking",
+    "Science & Innovation",
+    "Arts & Culture",
+    "Global Challenges",
+    "Leadership",
+  ],
+  C1: [
+    "Academic Discourse",
+    "Professional Negotiation",
+    "Research Methods",
+    "Ethics & Philosophy",
+    "Media & Persuasion",
+    "Innovation & Strategy",
+  ],
+  C2: [
+    "Nuance, Idioms & Register",
+    "Mastery & Research",
+    "Advanced Stylistics",
+    "Cross-cultural Diplomacy",
+    "Academic Publishing",
+    "Executive Leadership",
+  ],
 };
 
 // Intro paragraphs per level — EN/ES pair (kept in sync with prisma/seed)
@@ -192,11 +255,13 @@ export function localizeBlock(block: LessonContentBlock, locale: string): Lesson
       let t = b.text;
       t = t.replace(/Unit\s+(\d+):\s*/gi, "Unidad $1: ");
       t = t.replace(/Lesson\s+(\d+)/gi, "Lección $1");
-      // also translate unit names inside heading if known
+      // also translate unit names inside heading if known (now 6 per level)
       for (const code of Object.keys(UNIT_NAMES_EN)) {
-        for (let i = 0; i < 2; i++) {
-          const en = UNIT_NAMES_EN[code]![i]!;
-          const es = UNIT_NAMES_ES[code]![i]!;
+        const enArr = UNIT_NAMES_EN[code]!;
+        const esArr = UNIT_NAMES_ES[code]!;
+        for (let i = 0; i < enArr.length; i++) {
+          const en = enArr[i]!;
+          const es = esArr[i]!;
           if (t.includes(en)) t = t.replace(en, es);
         }
       }

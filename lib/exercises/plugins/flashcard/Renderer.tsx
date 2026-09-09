@@ -4,6 +4,14 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { FlashcardPrompt, FlashcardAnswer } from "./schema";
 
+const FALLBACK_FLASHCARD = "/lesson-images/teaching-placeholder.png";
+
+function resolveAlt(prompt: FlashcardPrompt, fallbackAlt?: string): string {
+  const base = prompt.front?.trim() || fallbackAlt || "Flashcard illustration";
+  // richer alt for a11y: front + context
+  return `${base} — flashcard image`;
+}
+
 export function FlashcardRenderer({
   prompt,
   onSubmit,
@@ -14,10 +22,17 @@ export function FlashcardRenderer({
   const t = useTranslations("exercise");
   const [flipped, setFlipped] = useState(false);
   const [typed, setTyped] = useState("");
+  const [imgError, setImgError] = useState(false);
 
   const primaryImage = prompt.imageUrl
-    ? { url: prompt.imageUrl, alt: prompt.front }
-    : prompt.images?.[0];
+    ? { url: prompt.imageUrl, alt: resolveAlt(prompt) }
+    : prompt.images?.[0]
+      ? { url: prompt.images[0].url, alt: prompt.images[0].alt || resolveAlt(prompt) }
+      : null;
+
+  const displayImage =
+    primaryImage && !imgError ? primaryImage : { url: FALLBACK_FLASHCARD, alt: resolveAlt(prompt) };
+  const hasImage = !!primaryImage || true; // always show fallback for visual consistency
 
   return (
     <div className="space-y-4">
@@ -25,14 +40,16 @@ export function FlashcardRenderer({
         onClick={() => setFlipped(!flipped)}
         className="cursor-pointer rounded-xl border border-slate-200 bg-white p-6 text-center shadow transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
       >
-        {primaryImage ? (
+        {hasImage ? (
           <div className="relative mx-auto mb-3 h-32 w-full max-w-[240px] overflow-hidden rounded-lg bg-slate-50 dark:bg-slate-800">
             <Image
-              src={primaryImage.url}
-              alt={primaryImage.alt}
+              src={displayImage.url}
+              alt={displayImage.alt}
               fill
               className="object-contain"
               sizes="240px"
+              onError={() => setImgError(true)}
+              unoptimized={displayImage.url.includes("picsum.photos")}
             />
           </div>
         ) : null}

@@ -30,21 +30,25 @@ function BlockRenderer({ block, locale }: { block: LessonContentBlock; locale: s
     case "paragraph":
       return <p className="leading-relaxed text-gray-700 dark:text-gray-300">{b.text}</p>;
     case "image": {
-      const src = b.url?.trim() ? b.url : "/lesson-images/teaching-placeholder.png";
+      const rawSrc = b.url?.trim() ? b.url.trim() : "/lesson-images/teaching-placeholder.png";
       const alt = b.alt?.trim() ? b.alt : "Lesson illustration";
       const caption = b.caption;
-      const needsUnoptimized = src.includes("picsum.photos");
       return (
         <figure className="overflow-hidden rounded-2xl border bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="relative aspect-[16/9] w-full bg-slate-50 dark:bg-slate-800">
-            <Image
-              src={src}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={rawSrc}
               alt={alt}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 672px"
-              unoptimized={needsUnoptimized}
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={(e) => {
+                const el = e.currentTarget as HTMLImageElement;
+                if (el.src.endsWith("teaching-placeholder.png")) return;
+                el.src = "/lesson-images/teaching-placeholder.png";
+              }}
+              loading="lazy"
             />
+            <span className="sr-only">{alt}</span>
           </div>
           {caption ? (
             <figcaption className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">

@@ -14,6 +14,23 @@ export const unitSchema = z.object({
   orderIndex: z.coerce.number().int().min(1).max(99),
 });
 
+const localOrHttpUrl = z
+  .string()
+  .min(1)
+  .refine(
+    (v) => {
+      if (v === "") return true;
+      if (v.startsWith("/")) return true;
+      try {
+        const u = new URL(v);
+        return u.protocol === "http:" || u.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Must be an http(s) URL or a local path starting with /" },
+  );
+
 export const lessonSchema = z.object({
   unitId: z.string().uuid(),
   title: z.string().min(2).max(120),
@@ -23,15 +40,15 @@ export const lessonSchema = z.object({
   isQuiz: z.coerce.boolean().optional(),
   isExam: z.coerce.boolean().optional(),
   kind: z.enum(["teach", "practice", "quiz", "exam"]).optional(),
-  coverImage: z.string().url().optional().or(z.literal("")),
+  coverImage: localOrHttpUrl.optional().or(z.literal("")),
   bodyMarkdown: z.string().max(20000).optional(),
   content: z.any().optional(),
 });
 
 const exerciseImageAssetSchema = z.object({
-  url: z.string().min(1),
-  alt: z.string().min(1),
-  caption: z.string().optional(),
+  url: localOrHttpUrl,
+  alt: z.string().min(1).max(200),
+  caption: z.string().max(200).optional(),
 });
 
 export const exerciseAdminSchema = z.object({
