@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils/cn";
 
 type NavItem = {
@@ -198,6 +199,12 @@ export function AppSidebar({
   const tNav = useTranslations("nav");
   const tSidebar = useTranslations("appSidebar");
 
+  const [levelsOpen, setLevelsOpen] = useState(() => normalizePath(pathname).startsWith("/levels"));
+
+  useEffect(() => {
+    if (normalizePath(pathname).startsWith("/levels")) setLevelsOpen(true);
+  }, [pathname]);
+
   const LEVEL_CODES = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 
   const sections: NavSection[] = [
@@ -350,6 +357,109 @@ export function AppSidebar({
                             normPath === `/levels/${c}` || normPath.startsWith(`/levels/${c}/`),
                         )
                       : undefined;
+                    if (isLevels) {
+                      return (
+                        <li key={item.href}>
+                          <button
+                            type="button"
+                            aria-expanded={levelsOpen}
+                            aria-controls="levels-subnav"
+                            aria-label={item.label}
+                            onClick={() => setLevelsOpen((v) => !v)}
+                            className={cn(
+                              "group flex w-full items-center gap-3 rounded-xl px-3 py-[9px] text-[13.5px] leading-none font-medium transition-all duration-150 motion-reduce:transition-none",
+                              "border border-transparent",
+                              collapsed && "lg:justify-center lg:px-2",
+                              active
+                                ? "border-primary-200/60 bg-primary-50 text-primary-800 dark:border-primary-800/40 dark:bg-primary-950/40 dark:text-primary-200 shadow-[0_1px_0_0_rgba(0,0,0,0.02)]"
+                                : "hover:bg-muted text-slate-600 hover:border-slate-200 hover:text-slate-900 dark:text-slate-300 dark:hover:border-slate-800 dark:hover:bg-slate-800/60 dark:hover:text-white",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors motion-reduce:transition-none",
+                                active
+                                  ? "border-primary-200 text-primary-600 dark:border-primary-800 dark:text-primary-300 bg-white dark:bg-slate-900"
+                                  : "border-slate-200 bg-white text-slate-500 group-hover:border-slate-200 group-hover:text-slate-700 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400",
+                              )}
+                            >
+                              {item.icon}
+                            </span>
+                            <span
+                              className={cn("flex-1 truncate text-left", collapsed && "lg:hidden")}
+                            >
+                              {item.label}
+                            </span>
+                            <span
+                              aria-hidden
+                              className={cn(
+                                "ml-auto text-[11px] text-slate-400 transition-transform duration-200 motion-reduce:transition-none dark:text-slate-500",
+                                active && "text-primary-600 dark:text-primary-300",
+                                levelsOpen && "rotate-180",
+                                collapsed && "lg:hidden",
+                              )}
+                            >
+                              ▾
+                            </span>
+                          </button>
+                          <div
+                            id="levels-subnav"
+                            className={cn(
+                              "grid transition-all duration-200 motion-reduce:transition-none",
+                              levelsOpen
+                                ? "grid-rows-[1fr] opacity-100"
+                                : "grid-rows-[0fr] opacity-0",
+                              collapsed && "lg:hidden",
+                            )}
+                          >
+                            <div className="overflow-hidden">
+                              <ul
+                                className="mt-1 ml-3 space-y-0.5 border-l border-dashed pl-3 dark:border-slate-800"
+                                aria-label="CEFR levels"
+                              >
+                                {LEVEL_CODES.map((code) => {
+                                  const levelActive = activeLevelCode === code;
+                                  return (
+                                    <li key={code}>
+                                      <Link
+                                        href={`/levels/${code}`}
+                                        onClick={onClose}
+                                        aria-current={levelActive ? "page" : undefined}
+                                        className={cn(
+                                          "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors motion-reduce:transition-none",
+                                          levelActive
+                                            ? "bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900"
+                                            : "text-slate-500 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white",
+                                        )}
+                                      >
+                                        <span
+                                          className={cn(
+                                            "inline-flex h-5 w-5 items-center justify-center rounded-md text-[10px] font-bold",
+                                            levelActive
+                                              ? "bg-white/15 text-white dark:bg-slate-900/10 dark:text-slate-900"
+                                              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+                                          )}
+                                          aria-hidden
+                                        >
+                                          {code[0]}
+                                        </span>
+                                        <span>{code}</span>
+                                        {levelActive && (
+                                          <span
+                                            className="ml-auto h-1.5 w-1.5 rounded-full bg-white dark:bg-slate-900"
+                                            aria-hidden
+                                          />
+                                        )}
+                                      </Link>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    }
                     return (
                       <li key={item.href}>
                         <Link
@@ -393,7 +503,7 @@ export function AppSidebar({
                               {item.badge}
                             </span>
                           )}
-                          {active && !isLevels && (
+                          {active && (
                             <span
                               className={cn(
                                 "bg-primary dark:bg-primary-300 ml-auto h-1.5 w-1.5 rounded-full",
@@ -402,65 +512,7 @@ export function AppSidebar({
                               aria-hidden
                             />
                           )}
-                          {isLevels && !collapsed && (
-                            <span
-                              className={cn(
-                                "ml-auto text-[11px] text-slate-400 transition-transform dark:text-slate-500",
-                                active && "text-primary-600 dark:text-primary-300",
-                              )}
-                              aria-hidden
-                            >
-                              ▾
-                            </span>
-                          )}
                         </Link>
-                        {isLevels && (
-                          <ul
-                            className={cn(
-                              "mt-1 ml-3 space-y-0.5 border-l border-dashed pl-3 dark:border-slate-800",
-                              collapsed && "lg:hidden",
-                            )}
-                            aria-label="CEFR levels"
-                          >
-                            {LEVEL_CODES.map((code) => {
-                              const levelActive = activeLevelCode === code;
-                              return (
-                                <li key={code}>
-                                  <Link
-                                    href={`/levels/${code}`}
-                                    onClick={onClose}
-                                    aria-current={levelActive ? "page" : undefined}
-                                    className={cn(
-                                      "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors motion-reduce:transition-none",
-                                      levelActive
-                                        ? "bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900"
-                                        : "text-slate-500 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white",
-                                    )}
-                                  >
-                                    <span
-                                      className={cn(
-                                        "inline-flex h-5 w-5 items-center justify-center rounded-md text-[10px] font-bold",
-                                        levelActive
-                                          ? "bg-white/15 text-white dark:bg-slate-900/10 dark:text-slate-900"
-                                          : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
-                                      )}
-                                      aria-hidden
-                                    >
-                                      {code[0]}
-                                    </span>
-                                    <span>{code}</span>
-                                    {levelActive && (
-                                      <span
-                                        className="ml-auto h-1.5 w-1.5 rounded-full bg-white dark:bg-slate-900"
-                                        aria-hidden
-                                      />
-                                    )}
-                                  </Link>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
                       </li>
                     );
                   })}
