@@ -34,7 +34,10 @@
     "keepGoingDesc": "Practica un poco cada día. Tu racha premia la constancia.",
     "reviewNow": "Repasar ahora",
     "learnerRole": "Estudiante",
-    "learnerMeta": "Nivel A1 · Racha de 3 días"
+    "learnerRoleGuest": "Invitado",
+    "learnerMeta": "Nivel A1 · Racha de 3 días",
+    "learnerMetaWithValues": "Nivel {level} · Racha de {streak} días",
+    "learnerMetaGuest": "Nivel {level} · 0 días"
   },
   "appHeader": {
     "titles": {

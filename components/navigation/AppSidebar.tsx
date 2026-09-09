@@ -187,16 +187,34 @@ function isActive(pathname: string, item: NavItem) {
   return false;
 }
 
+export type LearnerInfo = {
+  name: string;
+  levelCode: string;
+  streakDays: number;
+  xp: number;
+  isGuest: boolean;
+};
+
+const DEFAULT_LEARNER: LearnerInfo = {
+  name: "",
+  levelCode: "A1",
+  streakDays: 0,
+  xp: 0,
+  isGuest: true,
+};
+
 export function AppSidebar({
   mobileOpen,
   onClose,
   collapsed = false,
   isAdmin = false,
+  learner = DEFAULT_LEARNER,
 }: {
   mobileOpen: boolean;
   onClose: () => void;
   collapsed?: boolean;
   isAdmin?: boolean;
+  learner?: LearnerInfo;
 }) {
   const pathname = usePathname();
   const tNav = useTranslations("nav");
@@ -558,13 +576,20 @@ export function AppSidebar({
               collapsed && "lg:justify-center lg:px-2 lg:py-2.5",
             )}
           >
-            <EquippedAvatar />
+            <EquippedAvatar initial={learner.isGuest ? undefined : learner.name?.[0]} />
             <div className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>
               <div className="truncate text-xs font-semibold text-slate-900 dark:text-white">
-                {tSidebar("learnerRole")}
+                {learner.isGuest
+                  ? tSidebar("learnerRoleGuest")
+                  : learner.name?.trim() || tSidebar("learnerRole")}
               </div>
               <div className="truncate text-[11px] text-slate-500 dark:text-slate-400">
-                {tSidebar("learnerMeta")}
+                {learner.isGuest
+                  ? tSidebar("learnerMetaGuest", { level: learner.levelCode })
+                  : tSidebar("learnerMetaWithValues", {
+                      level: learner.levelCode,
+                      streak: learner.streakDays,
+                    })}
               </div>
             </div>
             <span

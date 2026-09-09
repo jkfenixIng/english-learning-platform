@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils/cn";
 import { usePreferencesStore } from "@/lib/stores/preferences";
-import { AppSidebar } from "./AppSidebar";
+import { AppSidebar, type LearnerInfo } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
 import { OfflineBanner } from "../pwa/OfflineBanner";
 import { InstallPrompt } from "../pwa/InstallPrompt";
@@ -13,9 +13,11 @@ import { TutorWidget } from "../tutor/TutorWidget";
 export function AppShellClient({
   children,
   isAdmin,
+  learner,
 }: {
   children: React.ReactNode;
   isAdmin: boolean;
+  learner: LearnerInfo;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const collapsed = usePreferencesStore((s) => s.sidebarCollapsed);
@@ -49,6 +51,7 @@ export function AppShellClient({
           onClose={() => setMobileOpen(false)}
           collapsed={collapsed}
           isAdmin={isAdmin}
+          learner={learner}
         />
         <div
           className={cn(

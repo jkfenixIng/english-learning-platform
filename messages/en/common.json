@@ -34,7 +34,10 @@
     "keepGoingDesc": "Practice a bit daily. Your streak loves consistency.",
     "reviewNow": "Review now",
     "learnerRole": "Learner",
-    "learnerMeta": "Level A1 · 3-day streak"
+    "learnerRoleGuest": "Guest",
+    "learnerMeta": "Level A1 · 3-day streak",
+    "learnerMetaWithValues": "Level {level} · {streak}-day streak",
+    "learnerMetaGuest": "Level {level} · 0-day streak"
   },
   "appHeader": {
     "titles": {

@@ -12,9 +12,10 @@ type Inv = {
   assetUrl?: string | null;
 };
 
-export function EquippedAvatar() {
+export function EquippedAvatar({ initial }: { initial?: string | undefined }) {
   const [frame, setFrame] = useState<string | null>(null);
   const [avatarOverlay, setAvatarOverlay] = useState<string | null>(null);
+  const displayInitial = (initial?.trim()?.[0] ?? "E").toUpperCase();
 
   useEffect(() => {
     let cancelled = false;
@@ -54,7 +55,7 @@ export function EquippedAvatar() {
 
   return (
     <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700">
-      <span aria-hidden>E</span>
+      <span aria-hidden>{displayInitial}</span>
       {avatarOverlay ? (
         <Image
           src={avatarOverlay}
