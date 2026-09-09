@@ -11,14 +11,22 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
     const supabase = await createClient();
     const { data } = await supabase.auth.getUser();
     const uid = data.user?.id;
-    if (!uid) return false;
-    // In dev without DB, fallback to env allow-list check
+    const email = data.user?.email?.toLowerCase() ?? "";
+    if (!uid && !email) return false;
+
+    // Env allow-list is authoritative even when DB is available — zero-cost dev promotion.
+    // Supports comma-separated list: ADMIN_EMAILS="a@b.com, c@d.com"
+    const allow = (process.env.ADMIN_EMAILS ?? "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    if (email && allow.includes(email)) return true;
+
+    // In dev without DB, allow-list is the only source
     if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes("not available")) {
-      const allow = (process.env.ADMIN_EMAILS ?? "").split(",").map((s) => s.trim().toLowerCase());
-      const email = data.user?.email?.toLowerCase() ?? "";
-      if (allow.includes(email)) return true;
       return false;
     }
+    if (!uid) return false;
     const user = await prisma.user.findUnique({ where: { id: uid }, select: { role: true } });
     return user?.role === "admin";
   } catch {

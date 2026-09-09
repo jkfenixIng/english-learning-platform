@@ -104,6 +104,28 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Optional early admin gate — lightweight, never breaks SSR.
+  // Authoritative check is in app/[locale]/(admin)/admin/layout.tsx (403).
+  // Here we only fast-allow via ADMIN_EMAILS allow-list; DB role check is
+  // deferred to the Server Component to avoid edge/Prisma incompatibility.
+  const isAdminRoute =
+    pathnameWithoutLocale === "/admin" || pathnameWithoutLocale.startsWith("/admin/");
+  if (isAdminRoute && user) {
+    const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    if (adminEmails.length > 0) {
+      const email = user.email?.toLowerCase() ?? "";
+      if (email && adminEmails.includes(email)) {
+        return supabaseResponse;
+      }
+      // If ADMIN_EMAILS is configured and user is not in it, still defer to
+      // layout.tsx for DB role check — do not redirect here to avoid false
+      // negatives when admin was promoted via DB (role='admin') without env.
+    }
+  }
+
   return supabaseResponse;
 }
 

@@ -328,7 +328,8 @@
     "xpLabel": "{xp} XP",
     "xpToNext": "{remaining} XP to next level",
     "dayStreak": "{count} day streak",
-    "daysStreak": "{count} day streak"
+    "daysStreak": "{count} day streak",
+    "streakFallback": "{count} day streak"
   },
   "auth": {
     "email": "Email",

@@ -279,27 +279,85 @@ npm run build   # prisma generate is handled by vercel.json buildCommand
 npm start
 ```
 
+### 6. Crear admin (Admin access)
+
+El modulo `/admin` es **solo para `role='admin'`** — estudiantes no lo ven en el sidebar ni pueden abrirlo (403). Elige una opcion (cero costo):
+
+**Opcion 1 -- `ADMIN_EMAILS` (dev, sin tocar DB, la mas rapida):**
+
+```bash
+# .env
+ADMIN_EMAILS="tu@email.com,otro@email.com"
+# reinicia dev server
+npm run dev
+```
+
+`lib/auth/requireAdmin.ts` trata esa lista como admin aunque `users.role` siga siendo `student`. Ideal para probar local sin migrar.
+
+**Opcion 2 -- Script (prod DB con `DATABASE_URL`):**
+
+```bash
+# El usuario debe existir en public.users (que se cree al hacer login una vez)
+npx tsx scripts/promote-admin.ts tu@email.com
+# o
+npm run admin:promote -- tu@email.com
+# revertir
+npx tsx scripts/promote-admin.ts tu@email.com --demote
+# verificar
+psql $DATABASE_URL -c "SELECT id, email, role FROM users WHERE email='tu@email.com';"
+```
+
+El script hace `UPDATE users SET role='admin' WHERE email='...'`. Si no encuentra la fila, te pide que el usuario se loguee primero via `/login` o `/register` para que `ensureUserExists` cree la fila con `id == auth.users.id` (FK). Luego cierra sesion y vuelve a entrar.
+
+**Opcion 3 -- SQL directo (Supabase SQL Editor o psql):**
+
+```sql
+-- Supabase Dashboard -> SQL Editor
+UPDATE users SET role='admin' WHERE email='tu@email.com';
+-- verificar
+SELECT id, email, role FROM users WHERE email='tu@email.com';
+```
+
+En Supabase el `id` de `public.users` debe coincidir con `auth.users.id`. Si el usuario aun no tiene fila en `public.users`, primero debe loguearse; si insistes en crearlo manual, usa el UUID de `auth.users`:
+
+```sql
+INSERT INTO users (id, email, name, role) VALUES ('<auth-uid>', 'tu@email.com', 'Admin', 'admin')
+ON CONFLICT (id) DO UPDATE SET role='admin';
+```
+
+**Endpoint para UI futura (solo admin puede promover):**
+
+```
+PATCH /api/admin/users/[id]/role  { "role": "admin" | "student" }
+# ej. curl -X PATCH http://localhost:3000/api/admin/users/<uuid>/role -H "Content-Type: application/json" -d '{"role":"admin"}'
+```
+
+Protegido por `requireAdminOrThrow` -> 403 si no eres admin.
+
+Notas: `User.role` default es `student` (`prisma/schema.prisma`). Middleware protege `/admin` por sesion y allow-list `ADMIN_EMAILS` (fast-path); el gate autoritativo es `app/[locale]/(admin)/admin/layout.tsx` que devuelve 403 con mensaje claro y estilos dark. `AppShell` es Server Component que hace `await isCurrentUserAdmin()` y pasa `isAdmin` a `AppSidebar` (client) que filtra `sections.filter(s => s.title !== tNav("sections.admin") || isAdmin)`.
+
 ---
 
 ## 📜 Scripts
 
-| Script         | Command                     | What it does                                                   |
-| -------------- | --------------------------- | -------------------------------------------------------------- |
-| `dev`          | `next dev`                  | Start dev server with HMR                                      |
-| `build`        | `next build`                | Production build (Vercel runs `prisma generate && next build`) |
-| `start`        | `next start`                | Serve production build                                         |
-| `lint`         | `eslint .`                  | Lint entire repo                                               |
-| `lint:fix`     | `eslint . --fix`            | Lint + auto-fix                                                |
-| `format`       | `prettier --write .`        | Format with Prettier + tailwind plugin                         |
-| `format:check` | `prettier --check .`        | CI format check                                                |
-| `typecheck`    | `tsc --noEmit`              | Strict type check                                              |
-| `test`         | `vitest run`                | Run Vitest suite once                                          |
-| `test:watch`   | `vitest`                    | Watch mode                                                     |
-| `seed`         | `tsx prisma/seed.ts`        | Idempotent catalog seed (A1-C2)                                |
-| `check-i18n`   | `tsx scripts/check-i18n.ts` | Verify `en`/`es` keys are in sync                              |
-| `db:generate`  | `prisma generate`           | Regenerate Prisma Client                                       |
-| `db:migrate`   | `prisma migrate dev`        | Create & apply migration (dev)                                 |
-| `db:deploy`    | `prisma migrate deploy`     | Apply migrations (prod/CI)                                     |
+| Script          | Command                                | What it does                                                   |
+| --------------- | -------------------------------------- | -------------------------------------------------------------- |
+| `dev`           | `next dev`                             | Start dev server with HMR                                      |
+| `build`         | `next build`                           | Production build (Vercel runs `prisma generate && next build`) |
+| `start`         | `next start`                           | Serve production build                                         |
+| `lint`          | `eslint .`                             | Lint entire repo                                               |
+| `lint:fix`      | `eslint . --fix`                       | Lint + auto-fix                                                |
+| `format`        | `prettier --write .`                   | Format with Prettier + tailwind plugin                         |
+| `format:check`  | `prettier --check .`                   | CI format check                                                |
+| `typecheck`     | `tsc --noEmit`                         | Strict type check                                              |
+| `test`          | `vitest run`                           | Run Vitest suite once                                          |
+| `test:watch`    | `vitest`                               | Watch mode                                                     |
+| `seed`          | `tsx prisma/seed.ts`                   | Idempotent catalog seed (A1-C2)                                |
+| `check-i18n`    | `tsx scripts/check-i18n.ts`            | Verify `en`/`es` keys are in sync                              |
+| `db:generate`   | `prisma generate`                      | Regenerate Prisma Client                                       |
+| `db:migrate`    | `prisma migrate dev`                   | Create & apply migration (dev)                                 |
+| `db:deploy`     | `prisma migrate deploy`                | Apply migrations (prod/CI)                                     |
+| `admin:promote` | `tsx scripts/promote-admin.ts <email>` | Promote user to admin by email (`--demote` to revert)          |
 
 ---
 

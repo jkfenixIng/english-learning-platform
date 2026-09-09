@@ -190,10 +190,12 @@ export function AppSidebar({
   mobileOpen,
   onClose,
   collapsed = false,
+  isAdmin = false,
 }: {
   mobileOpen: boolean;
   onClose: () => void;
   collapsed?: boolean;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const tNav = useTranslations("nav");
@@ -207,7 +209,7 @@ export function AppSidebar({
 
   const LEVEL_CODES = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 
-  const sections: NavSection[] = [
+  const allSections: NavSection[] = [
     {
       title: tNav("sections.learn"),
       items: [
@@ -264,6 +266,9 @@ export function AppSidebar({
       items: [{ href: "/admin", label: tNav("admin"), icon: <IconAdmin className={ICON} /> }],
     },
   ];
+
+  // Hide admin section from non-admins — isAdmin comes from server via AppShell
+  const sections = allSections.filter((s) => s.title !== tNav("sections.admin") || isAdmin);
 
   return (
     <>
