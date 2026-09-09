@@ -198,6 +198,8 @@ export function AppSidebar({
   const tNav = useTranslations("nav");
   const tSidebar = useTranslations("appSidebar");
 
+  const LEVEL_CODES = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
+
   const sections: NavSection[] = [
     {
       title: tNav("sections.learn"),
@@ -209,7 +211,7 @@ export function AppSidebar({
           match: "/dashboard",
         },
         {
-          href: "/levels/A1",
+          href: "/levels",
           label: tNav("levels"),
           icon: <IconLevels className={ICON} />,
           match: "/levels",
@@ -340,6 +342,14 @@ export function AppSidebar({
                 <ul className="space-y-1">
                   {section.items.map((item) => {
                     const active = isActive(pathname, item);
+                    const isLevels = item.href === "/levels";
+                    const normPath = normalizePath(pathname);
+                    const activeLevelCode = isLevels
+                      ? LEVEL_CODES.find(
+                          (c) =>
+                            normPath === `/levels/${c}` || normPath.startsWith(`/levels/${c}/`),
+                        )
+                      : undefined;
                     return (
                       <li key={item.href}>
                         <Link
@@ -383,7 +393,7 @@ export function AppSidebar({
                               {item.badge}
                             </span>
                           )}
-                          {active && (
+                          {active && !isLevels && (
                             <span
                               className={cn(
                                 "bg-primary dark:bg-primary-300 ml-auto h-1.5 w-1.5 rounded-full",
@@ -392,7 +402,65 @@ export function AppSidebar({
                               aria-hidden
                             />
                           )}
+                          {isLevels && !collapsed && (
+                            <span
+                              className={cn(
+                                "ml-auto text-[11px] text-slate-400 transition-transform dark:text-slate-500",
+                                active && "text-primary-600 dark:text-primary-300",
+                              )}
+                              aria-hidden
+                            >
+                              ▾
+                            </span>
+                          )}
                         </Link>
+                        {isLevels && (
+                          <ul
+                            className={cn(
+                              "mt-1 ml-3 space-y-0.5 border-l border-dashed pl-3 dark:border-slate-800",
+                              collapsed && "lg:hidden",
+                            )}
+                            aria-label="CEFR levels"
+                          >
+                            {LEVEL_CODES.map((code) => {
+                              const levelActive = activeLevelCode === code;
+                              return (
+                                <li key={code}>
+                                  <Link
+                                    href={`/levels/${code}`}
+                                    onClick={onClose}
+                                    aria-current={levelActive ? "page" : undefined}
+                                    className={cn(
+                                      "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors motion-reduce:transition-none",
+                                      levelActive
+                                        ? "bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900"
+                                        : "text-slate-500 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white",
+                                    )}
+                                  >
+                                    <span
+                                      className={cn(
+                                        "inline-flex h-5 w-5 items-center justify-center rounded-md text-[10px] font-bold",
+                                        levelActive
+                                          ? "bg-white/15 text-white dark:bg-slate-900/10 dark:text-slate-900"
+                                          : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+                                      )}
+                                      aria-hidden
+                                    >
+                                      {code[0]}
+                                    </span>
+                                    <span>{code}</span>
+                                    {levelActive && (
+                                      <span
+                                        className="ml-auto h-1.5 w-1.5 rounded-full bg-white dark:bg-slate-900"
+                                        aria-hidden
+                                      />
+                                    )}
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
                       </li>
                     );
                   })}

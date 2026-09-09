@@ -8,8 +8,20 @@
   --color-accent-foreground: #ffffff;
   --color-background: #ffffff;
   --color-foreground: #0f172a;
-  --color-muted: #f1f0eb;
-  --color-border: #e7e5e0;
+  --color-muted: #f8f7f5;
+  --color-muted-foreground: #64748b;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0f172a;
+  --color-border: #e7e5e4;
+  --color-input: #e7e5e4;
+  --color-ring: oklch(0.55 0.12 285);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
 
   /* Desaturated indigo scale 50..950 (muted) */
   --color-primary-50: oklch(0.97 0.02 285);
@@ -33,19 +45,85 @@
 
 .dark {
   color-scheme: dark;
-  --color-background: #0f172a;
+  --color-background: #020617;
   --color-foreground: #f8fafc;
-  --color-muted: #1e293b;
-  --color-border: #334155;
+  --color-muted: #0f172a;
+  --color-muted-foreground: #94a3b8;
+  --color-card: #0f172a;
+  --color-card-foreground: #f8fafc;
+  --color-popover: #0f172a;
+  --color-popover-foreground: #f8fafc;
+  --color-border: #1e293b;
+  --color-input: #1e293b;
+  --color-ring: oklch(0.66 0.11 285);
 }
 
 * {
   border-color: var(--color-border);
 }
 
+html {
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
-  font-family: ui-sans-system, system-ui, sans-serif;
+  font-family:
+    ui-sans-system,
+    system-ui,
+    -apple-system,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Focus visibility: accessible, consistent */
+*:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: oklch(0.88 0.06 285);
+  color: #0f172a;
+}
+.dark ::selection {
+  background: oklch(0.36 0.07 285);
+  color: #f8fafc;
+}
+
+/* Scrollbar subtle */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.dark *::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Card elevation helpers */
+.shadow-card {
+  box-shadow:
+    0 1px 2px 0 rgba(0, 0, 0, 0.04),
+    0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+.shadow-card-hover:hover {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.06),
+    0 2px 4px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* Improve contrast for muted text */
+.text-muted {
+  color: var(--color-muted-foreground);
 }

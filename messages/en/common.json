@@ -96,6 +96,14 @@
     "subtitle": "Daily, weekly, timed, streak and competitive — opt-in via Settings",
     "reward": "Reward: {xp} XP",
     "join": "Join",
+    "joining": "Joining…",
+    "joined": "Joined",
+    "joinUnauthorized": "Please sign in to join challenges",
+    "joinUnauthorizedDetail": "Unauthorized — please sign in",
+    "alreadyEnrolled": "Already enrolled",
+    "disabled": "Challenges disabled in preferences",
+    "genericError": "Something went wrong. Please try again.",
+    "notSynchronized": "User not synchronized — please sign in again",
     "fallbackDailyTitle": "Daily Sprint — Complete 5 exercises",
     "fallbackDailyDesc": "Complete 5 exercises today",
     "fallbackWeeklyTitle": "Weekly Marathon — 25 exercises",
@@ -144,12 +152,18 @@
   },
   "unit": {
     "notFound": "Unit not found — run seed first.",
+    "dbUnavailable": "Database unavailable — check your connection and try again.",
+    "emptyDb": "Database empty — no units yet. Run the seed to create content.",
+    "adminSeedCta": "Run seed in /admin/seed (admin only)",
     "coverAlt": "Cover for {title}",
     "open": "Open →",
     "min": "{minutes} min"
   },
   "lesson": {
     "notFound": "Lesson not found.",
+    "dbUnavailable": "Database unavailable — check your connection and try again.",
+    "emptyDb": "Database empty — no lessons yet. Run the seed to create content.",
+    "adminSeedCta": "Run seed in /admin/seed (admin only)",
     "kinds": {
       "teach": "Learn",
       "practice": "Practice",
@@ -370,7 +384,13 @@
     "join": "Join",
     "joined": "Joined",
     "completed": "Completed",
-    "reward": "Reward"
+    "reward": "Reward",
+    "joinUnauthorized": "Please sign in to join challenges",
+    "alreadyEnrolled": "Already enrolled",
+    "notSynchronized": "User not synchronized — please sign in again",
+    "disabled": "Challenges disabled in preferences",
+    "notFound": "Challenge not found",
+    "notActive": "Challenge not active"
   },
   "srs": {
     "title": "Daily Reviews",
@@ -408,6 +428,10 @@
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
+    "dbUnavailable": "Database unavailable",
+    "dbUnavailableDesc": "Cannot reach the database. Please check your connection and try again.",
+    "emptyDb": "Database is empty",
+    "seedCta": "Run seed in /admin/seed",
     "offline": "You are offline — reviews remain available",
     "comingSoon": "Coming soon"
   }

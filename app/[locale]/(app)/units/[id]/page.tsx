@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "../../../../../lib/db";
 import { resolveLessonKind, lessonKindBadgeClasses } from "../../../../../lib/lesson/types";
+import { isCurrentUserAdmin } from "../../../../../lib/auth/requireAdmin";
 
 type UnitRow = {
   id: string;
@@ -22,6 +23,21 @@ type UnitRow = {
   }[];
 };
 
+function isConnectionError(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false;
+  const err = e as { code?: string; message?: string };
+  if (err.code === "P1001" || err.code === "P1002" || err.code === "P1008") return true;
+  const msg = String(err.message ?? "").toLowerCase();
+  return (
+    msg.includes("can't reach database server") ||
+    msg.includes("can't reach database") ||
+    msg.includes("p1001") ||
+    (msg.includes("connection") && (msg.includes("timeout") || msg.includes("terminated"))) ||
+    msg.includes("connection terminated") ||
+    msg.includes("econnrefused")
+  );
+}
+
 export default async function UnitPage({
   params,
 }: {
@@ -30,28 +46,100 @@ export default async function UnitPage({
   const { id, locale } = await params;
   const tUnit = await getTranslations({ locale, namespace: "unit" });
   const tLesson = await getTranslations({ locale, namespace: "lesson" });
+  const tCommon = await getTranslations({ locale, namespace: "common" });
   let unit: UnitRow | null = null;
+  let dbUnavailable = false;
+
   try {
     unit = (await prisma.unit.findUnique({
       where: { id },
       include: { lessons: { orderBy: { orderIndex: "asc" } } },
     })) as unknown as UnitRow | null;
-  } catch {
-    try {
-      const rows = (await prisma.$queryRawUnsafe(
-        `SELECT id, title, description, "cover_image" as "coverImage" FROM units WHERE id = $1 LIMIT 1`,
-        id,
-      )) as unknown as UnitRow[];
-      unit = rows[0] ?? null;
-      if (unit) {
-        unit.lessons = (await prisma.lesson.findMany({
-          where: { unitId: id },
-          orderBy: { orderIndex: "asc" },
-        })) as unknown as UnitRow["lessons"];
+  } catch (e) {
+    console.error("[UnitPage] prisma.unit.findUnique failed", { id, error: e });
+    if (isConnectionError(e)) {
+      dbUnavailable = true;
+    } else {
+      try {
+        const rows = (await prisma.$queryRawUnsafe(
+          `SELECT id, title, description, "cover_image" as "coverImage" FROM units WHERE id = $1 LIMIT 1`,
+          id,
+        )) as unknown as UnitRow[];
+        unit = rows[0] ?? null;
+        if (unit) {
+          unit.lessons = (await prisma.lesson.findMany({
+            where: { unitId: id },
+            orderBy: { orderIndex: "asc" },
+          })) as unknown as UnitRow["lessons"];
+        }
+      } catch (fallbackErr) {
+        console.error("[UnitPage] fallback query failed", { id, error: fallbackErr });
+        if (isConnectionError(fallbackErr)) dbUnavailable = true;
       }
-    } catch {}
+    }
   }
-  if (!unit) return <p className="text-sm text-gray-500">{tUnit("notFound")}</p>;
+
+  if (dbUnavailable) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-900/40 dark:bg-amber-950/20">
+        <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+          {tUnit("dbUnavailable")}
+        </p>
+        <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">
+          {tCommon("dbUnavailableDesc")}
+        </p>
+      </div>
+    );
+  }
+
+  if (!unit) {
+    // Distinguish empty DB vs missing id; show admin CTA if empty and user is admin
+    let isAdmin = false;
+    let isEmptyDb = false;
+    try {
+      isAdmin = await isCurrentUserAdmin();
+    } catch (e) {
+      console.error("[UnitPage] isCurrentUserAdmin check failed", e);
+    }
+    try {
+      const levelCount = await prisma.level.count();
+      isEmptyDb = levelCount === 0;
+      if (isEmptyDb) console.warn("[UnitPage] levels count is 0 — DB empty, seed required");
+    } catch (e) {
+      console.error("[UnitPage] level.count failed", e);
+      if (isConnectionError(e)) {
+        return (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-900/40 dark:bg-amber-950/20">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+              {tUnit("dbUnavailable")}
+            </p>
+            <p className="mt-1 text-sm text-amber-800 dark:text-amber-300">
+              {tCommon("dbUnavailableDesc")}
+            </p>
+          </div>
+        );
+      }
+    }
+
+    if (isEmptyDb) {
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-500">{tUnit("notFound")}</p>
+          <p className="text-sm text-gray-500">{tUnit("emptyDb")}</p>
+          {isAdmin ? (
+            <Link
+              href="/admin/seed"
+              className="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            >
+              {tUnit("adminSeedCta")}
+            </Link>
+          ) : null}
+        </div>
+      );
+    }
+
+    return <p className="text-sm text-gray-500">{tUnit("notFound")}</p>;
+  }
 
   return (
     <div className="space-y-5">

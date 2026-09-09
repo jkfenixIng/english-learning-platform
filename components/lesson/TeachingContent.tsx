@@ -28,25 +28,29 @@ function BlockRenderer({ block }: { block: LessonContentBlock }) {
     }
     case "paragraph":
       return <p className="leading-relaxed text-gray-700 dark:text-gray-300">{block.text}</p>;
-    case "image":
+    case "image": {
+      const src = block.url?.trim() ? block.url : "/lesson-images/teaching-placeholder.png";
+      const isLocal = src.startsWith("/lesson-images/");
       return (
-        <figure className="overflow-hidden rounded-xl border bg-white dark:border-gray-800 dark:bg-gray-900">
-          <div className="relative aspect-[16/9] w-full bg-gray-50 dark:bg-gray-800">
+        <figure className="overflow-hidden rounded-2xl border bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="relative aspect-[16/9] w-full bg-slate-50 dark:bg-slate-800">
             <Image
-              src={block.url}
+              src={src}
               alt={block.alt}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 672px"
+              unoptimized={isLocal || src.includes("picsum.photos")}
             />
           </div>
           {block.caption ? (
-            <figcaption className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+            <figcaption className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
               {block.caption}
             </figcaption>
           ) : null}
         </figure>
       );
+    }
     case "vocab":
       return (
         <div className="rounded-xl border bg-amber-50/60 p-4 dark:border-amber-900/30 dark:bg-amber-950/20">
@@ -122,14 +126,30 @@ export function TeachingContent({ content, bodyMarkdown, coverImage, title, clas
     return (
       <div
         className={cn(
-          "rounded-xl border border-dashed bg-gray-50 p-6 text-center dark:bg-gray-900",
+          "overflow-hidden rounded-2xl border bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900",
           className,
         )}
       >
-        <p className="text-sm text-gray-500">
-          {t("comingSoon", { title: title ?? t("comingSoonFallback") })}
-        </p>
-        <p className="mt-1 text-xs text-gray-400">{t("addBlocksHint")}</p>
+        <div className="relative aspect-[16/9] w-full bg-slate-50 dark:bg-slate-800">
+          <Image
+            src="/lesson-images/teaching-placeholder.png"
+            alt={title ?? t("coverFallback")}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 672px"
+            unoptimized
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"
+            aria-hidden
+          />
+          <div className="absolute bottom-0 p-4">
+            <p className="text-sm font-semibold text-white drop-shadow">
+              {t("comingSoon", { title: title ?? t("comingSoonFallback") })}
+            </p>
+            <p className="mt-1 text-xs text-white/80">{t("addBlocksHint")}</p>
+          </div>
+        </div>
       </div>
     );
   }

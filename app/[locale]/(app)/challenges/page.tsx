@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { prisma } from "../../../../lib/db";
+import ChallengeJoinButton from "./ChallengeJoinButton";
 
 export default async function ChallengesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -51,25 +52,23 @@ export default async function ChallengesPage({ params }: { params: Promise<{ loc
                 <p className="text-sm text-gray-500">{c.description}</p>
                 <p className="mt-1 text-xs">{t("reward", { xp: c.rewardXp })}</p>
               </div>
-              <ChallengeJoinButton id={c.id} locale={locale} />
+              <ChallengeJoinButton
+                challengeId={c.id}
+                locale={locale}
+                labels={{
+                  join: t("join"),
+                  joining: t("joining"),
+                  joined: t("joined"),
+                  unauthorized: t("joinUnauthorized"),
+                  alreadyEnrolled: t("alreadyEnrolled"),
+                  disabled: t("disabled"),
+                  genericError: t("genericError"),
+                }}
+              />
             </div>
           </div>
         ))}
       </div>
     </div>
-  );
-}
-
-async function ChallengeJoinButton({ id, locale }: { id: string; locale: string }) {
-  const t = await getTranslations({ locale, namespace: "challengesPage" });
-  return (
-    <form action={`/api/challenges/${id}/join`} method="post">
-      <button
-        formAction={`/api/challenges/${id}/join`}
-        className="bg-primary rounded px-3 py-1 text-xs text-white"
-      >
-        {t("join")}
-      </button>
-    </form>
   );
 }

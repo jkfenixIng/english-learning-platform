@@ -96,6 +96,14 @@
     "subtitle": "Diarios, semanales, cronometrados, de racha y competitivos — actívalos en Ajustes",
     "reward": "Recompensa: {xp} XP",
     "join": "Unirse",
+    "joining": "Uniéndose…",
+    "joined": "Unido",
+    "joinUnauthorized": "Inicia sesión para unirte a los desafíos",
+    "joinUnauthorizedDetail": "No autorizado — inicia sesión",
+    "alreadyEnrolled": "Ya estás inscrito",
+    "disabled": "Desafíos desactivados en preferencias",
+    "genericError": "Algo salió mal. Intenta de nuevo.",
+    "notSynchronized": "Usuario no sincronizado — vuelve a iniciar sesión",
     "fallbackDailyTitle": "Sprint diario — Completa 5 ejercicios",
     "fallbackDailyDesc": "Completa 5 ejercicios hoy",
     "fallbackWeeklyTitle": "Maratón semanal — 25 ejercicios",
@@ -144,12 +152,18 @@
   },
   "unit": {
     "notFound": "Unidad no encontrada — ejecuta el seed primero.",
+    "dbUnavailable": "Base de datos no disponible — verifica la conexión e intenta de nuevo.",
+    "emptyDb": "Base de datos vacía — aún sin unidades. Ejecuta el seed para crear contenido.",
+    "adminSeedCta": "Ejecutar seed en /admin/seed (solo admin)",
     "coverAlt": "Portada de {title}",
     "open": "Abrir →",
     "min": "{minutes} min"
   },
   "lesson": {
     "notFound": "Lección no encontrada.",
+    "dbUnavailable": "Base de datos no disponible — verifica la conexión e intenta de nuevo.",
+    "emptyDb": "Base de datos vacía — aún sin lecciones. Ejecuta el seed para crear contenido.",
+    "adminSeedCta": "Ejecutar seed en /admin/seed (solo admin)",
     "kinds": {
       "teach": "Aprender",
       "practice": "Práctica",
@@ -371,7 +385,13 @@
     "join": "Unirse",
     "joined": "Unido",
     "completed": "Completado",
-    "reward": "Recompensa"
+    "reward": "Recompensa",
+    "joinUnauthorized": "Inicia sesión para unirte a los desafíos",
+    "alreadyEnrolled": "Ya estás inscrito",
+    "notSynchronized": "Usuario no sincronizado — vuelve a iniciar sesión",
+    "disabled": "Desafíos desactivados en preferencias",
+    "notFound": "Desafío no encontrado",
+    "notActive": "Desafío no activo"
   },
   "srs": {
     "title": "Repasos diarios",
@@ -409,6 +429,10 @@
   "common": {
     "loading": "Cargando...",
     "error": "Algo salió mal",
+    "dbUnavailable": "Base de datos no disponible",
+    "dbUnavailableDesc": "No se pudo conectar a la base de datos. Verifica tu conexión e intenta de nuevo.",
+    "emptyDb": "Base de datos vacía",
+    "seedCta": "Ejecutar seed en /admin/seed",
     "offline": "Estás sin conexión — los repasos siguen disponibles",
     "comingSoon": "Próximamente"
   }
