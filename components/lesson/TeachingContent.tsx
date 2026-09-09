@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import type { LessonContent, LessonContentBlock } from "@/lib/lesson/types";
+import { localizeBlock } from "@/lib/lesson/localize";
 import { cn } from "@/lib/utils/cn";
 
 interface Props {
@@ -11,54 +12,57 @@ interface Props {
   coverImage?: string | null;
   title?: string;
   className?: string;
+  locale?: string;
 }
 
-function BlockRenderer({ block }: { block: LessonContentBlock }) {
+function BlockRenderer({ block, locale }: { block: LessonContentBlock; locale: string }) {
   const tTeaching = useTranslations("lesson.teachingContent");
-  switch (block.type) {
+  const b = localizeBlock(block, locale);
+  switch (b.type) {
     case "heading": {
-      const Tag = block.level === 3 ? "h3" : "h2";
+      const Tag = b.level === 3 ? "h3" : "h2";
       return (
-        <Tag
-          className={cn("font-semibold tracking-tight", block.level === 3 ? "text-lg" : "text-xl")}
-        >
-          {block.text}
+        <Tag className={cn("font-semibold tracking-tight", b.level === 3 ? "text-lg" : "text-xl")}>
+          {b.text}
         </Tag>
       );
     }
     case "paragraph":
-      return <p className="leading-relaxed text-gray-700 dark:text-gray-300">{block.text}</p>;
+      return <p className="leading-relaxed text-gray-700 dark:text-gray-300">{b.text}</p>;
     case "image": {
-      const src = block.url?.trim() ? block.url : "/lesson-images/teaching-placeholder.png";
-      const isLocal = src.startsWith("/lesson-images/");
+      const src = b.url?.trim() ? b.url : "/lesson-images/teaching-placeholder.png";
+      const alt = b.alt?.trim() ? b.alt : "Lesson illustration";
+      const caption = b.caption;
+      const needsUnoptimized = src.includes("picsum.photos");
       return (
         <figure className="overflow-hidden rounded-2xl border bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="relative aspect-[16/9] w-full bg-slate-50 dark:bg-slate-800">
             <Image
               src={src}
-              alt={block.alt}
+              alt={alt}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 672px"
-              unoptimized={isLocal || src.includes("picsum.photos")}
+              unoptimized={needsUnoptimized}
             />
           </div>
-          {block.caption ? (
+          {caption ? (
             <figcaption className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">
-              {block.caption}
+              {caption}
             </figcaption>
           ) : null}
         </figure>
       );
     }
-    case "vocab":
+    case "vocab": {
+      const vb = b as Extract<LessonContentBlock, { type: "vocab" }>;
       return (
         <div className="rounded-xl border bg-amber-50/60 p-4 dark:border-amber-900/30 dark:bg-amber-950/20">
           <p className="mb-2 text-xs font-semibold tracking-wide text-amber-800 uppercase dark:text-amber-200">
             {tTeaching("keyVocab")}
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
-            {block.items.map((item) => (
+            {vb.items.map((item) => (
               <div key={item.word} className="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-900">
                 <p className="text-sm font-semibold">{item.word}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{item.definition}</p>
@@ -70,45 +74,47 @@ function BlockRenderer({ block }: { block: LessonContentBlock }) {
           </div>
         </div>
       );
-    case "example":
+    }
+    case "example": {
+      const eb = b as Extract<LessonContentBlock, { type: "example" }>;
       return (
         <div className="rounded-xl border-l-4 border-indigo-500 bg-indigo-50/60 p-4 dark:bg-indigo-950/20">
-          {block.title ? (
-            <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-200">
-              {block.title}
-            </p>
+          {eb.title ? (
+            <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-200">{eb.title}</p>
           ) : null}
-          <p className="mt-1 text-sm leading-relaxed text-gray-800 dark:text-gray-200">
-            {block.text}
-          </p>
-          {block.translation ? (
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{block.translation}</p>
+          <p className="mt-1 text-sm leading-relaxed text-gray-800 dark:text-gray-200">{eb.text}</p>
+          {eb.translation ? (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{eb.translation}</p>
           ) : null}
         </div>
       );
-    case "list":
-      return block.ordered ? (
+    }
+    case "list": {
+      const lb = b as Extract<LessonContentBlock, { type: "list" }>;
+      return lb.ordered ? (
         <ol className="list-inside list-decimal space-y-1 text-sm text-gray-700 dark:text-gray-300">
-          {block.items.map((item, i) => (
+          {lb.items.map((item, i) => (
             <li key={i}>{item}</li>
           ))}
         </ol>
       ) : (
         <ul className="list-inside list-disc space-y-1 text-sm text-gray-700 dark:text-gray-300">
-          {block.items.map((item, i) => (
+          {lb.items.map((item, i) => (
             <li key={i}>{item}</li>
           ))}
         </ul>
       );
+    }
     case "callout": {
+      const cb = b as Extract<LessonContentBlock, { type: "callout" }>;
       const variantClasses =
-        block.variant === "warning"
+        cb.variant === "warning"
           ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30"
-          : block.variant === "tip"
+          : cb.variant === "tip"
             ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30"
             : "border-sky-400 bg-sky-50 dark:bg-sky-950/30";
       return (
-        <div className={cn("rounded-xl border-l-4 p-4 text-sm", variantClasses)}>{block.text}</div>
+        <div className={cn("rounded-xl border-l-4 p-4 text-sm", variantClasses)}>{cb.text}</div>
       );
     }
     default:
@@ -116,8 +122,17 @@ function BlockRenderer({ block }: { block: LessonContentBlock }) {
   }
 }
 
-export function TeachingContent({ content, bodyMarkdown, coverImage, title, className }: Props) {
+export function TeachingContent({
+  content,
+  bodyMarkdown,
+  coverImage,
+  title,
+  className,
+  locale: localeProp,
+}: Props) {
   const t = useTranslations("lesson.teachingContent");
+  const hookLocale = useLocale();
+  const locale = localeProp ?? hookLocale;
   const blocks = content?.blocks ?? [];
   const hasBlocks = blocks.length > 0;
   const hasMarkdown = Boolean(bodyMarkdown && bodyMarkdown.trim().length > 0);
@@ -137,7 +152,6 @@ export function TeachingContent({ content, bodyMarkdown, coverImage, title, clas
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 672px"
-            unoptimized
           />
           <div
             className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"
@@ -166,6 +180,7 @@ export function TeachingContent({ content, bodyMarkdown, coverImage, title, clas
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 672px"
               priority={false}
+              unoptimized={Boolean(coverImage?.includes("picsum.photos"))}
             />
           </div>
         </div>
@@ -174,7 +189,7 @@ export function TeachingContent({ content, bodyMarkdown, coverImage, title, clas
       {hasBlocks ? (
         <div className="space-y-4">
           {blocks.map((block, idx) => (
-            <BlockRenderer key={idx} block={block} />
+            <BlockRenderer key={idx} block={block} locale={locale} />
           ))}
         </div>
       ) : null}

@@ -8,6 +8,66 @@ function picsum(seed: string, w = 600, h = 340): string {
   return `https://picsum.photos/seed/${safe}/${w}/${h}`;
 }
 
+function coverForLevel(levelCode: string): string {
+  const c = levelCode.toLowerCase();
+  if (["a1", "a2", "b1", "b2", "c1", "c2"].includes(c)) return `/lesson-images/level-${c}.png`;
+  return "/lesson-images/teaching-placeholder.png";
+}
+
+const LEVEL_IMAGE_ALT: Record<string, { en: string; es: string }> = {
+  A1: {
+    en: "Two students greeting at reception — A1 greetings and introductions",
+    es: "Dos estudiantes saludándose en recepción — saludos y presentaciones A1",
+  },
+  A2: {
+    en: "Local market scene — A2 daily life and travel vocabulary",
+    es: "Escena de mercado local — vocabulario de vida diaria y viajes A2",
+  },
+  B1: {
+    en: "Business meeting in office — B1 professional communication",
+    es: "Reunión de trabajo en oficina — comunicación profesional B1",
+  },
+  B2: {
+    en: "University campus discussion — B2 academic and business English",
+    es: "Debate en campus universitario — inglés académico y de negocios B2",
+  },
+  C1: {
+    en: "Academic conference presentation — C1 advanced discourse",
+    es: "Presentación en congreso académico — discurso avanzado C1",
+  },
+  C2: {
+    en: "Executive boardroom negotiation — C2 mastery and nuance",
+    es: "Negociación en sala de juntas — dominio y matices C2",
+  },
+};
+
+const LEVEL_IMAGE_CAPTION: Record<string, { en: string; es: string }> = {
+  A1: {
+    en: "Greetings and introductions — A1 everyday English",
+    es: "Saludos y presentaciones — inglés cotidiano A1",
+  },
+  A2: {
+    en: "Daily life and travel — A2 confidence for routines and trips",
+    es: "Vida diaria y viajes — A2 confianza para rutinas y viajes",
+  },
+  B1: {
+    en: "Professional meetings and emails — B1 workplace English",
+    es: "Reuniones y correos profesionales — inglés laboral B1",
+  },
+  B2: {
+    en: "Academic discussion and argument — B2 critical thinking",
+    es: "Debate académico y argumentación — B2 pensamiento crítico",
+  },
+  C1: {
+    en: "Advanced academic discourse — C1 stance and cohesion",
+    es: "Discurso académico avanzado — postura y cohesión C1",
+  },
+  C2: {
+    en: "Mastery: negotiation and register — C2 nuance and idioms",
+    es: "Dominio: negociación y registro — matices y modismos C2",
+  },
+};
+
 function lessonKindFor(li: number, isExam: boolean): "teach" | "quiz" | "exam" {
   if (isExam) return "exam";
   if (li === 3) return "quiz";
@@ -27,28 +87,74 @@ function buildLessonContent(
     C1: "Advanced discourse — stance, cohesion, and negotiation strategies at academic/professional level.",
     C2: "Mastery — nuance, register, idioms, and research-grade writing and speaking.",
   };
-  const seed = `${levelCode}-content-${li}`;
+  const introEs: Record<string, string> = {
+    A1: "Inglés cotidiano para situaciones reales: saludos, presentaciones y descripciones sencillas.",
+    A2: "Gana confianza para viajar y trabajar: pedir ayuda, describir rutinas y hacer planes.",
+    B1: "Comunicación profesional: reuniones, correos y temas culturales con vocabulario más rico.",
+    B2: "Inglés académico y de negocios: estructura argumentativa, matización y pensamiento crítico.",
+    C1: "Discurso avanzado: postura, cohesión y estrategias de negociación en contexto académico y profesional.",
+    C2: "Dominio total: matices, registro, modismos y escritura y habla a nivel de investigación.",
+  };
+  const vocabMap: Record<string, { en: string; es: string }[]> = {
+    default: [
+      { en: "something you want to achieve", es: "algo que quieres lograr" },
+      { en: "repeated exercise to improve", es: "ejercicio repetido para mejorar" },
+    ],
+  };
+  const unitTitleEs = (() => {
+    const m = unitTitle.match(/^([A-C][12])\s+Unit\s+(\d+):\s*(.*)$/i);
+    if (!m) return unitTitle;
+    const code = m[1]!.toUpperCase();
+    const idx = parseInt(m[2]!, 10);
+    const esNames: Record<string, [string, string]> = {
+      A1: ["Fundamentos", "Vida diaria"],
+      A2: ["Viajes", "Trabajo básico"],
+      B1: ["Comunicación profesional", "Cultura y medios"],
+      B2: ["Negocios y academia", "Pensamiento crítico"],
+      C1: ["Discurso académico", "Negociación profesional"],
+      C2: ["Matices, modismos y registro", "Dominio e investigación"],
+    };
+    const arr = esNames[code];
+    if (!arr || idx < 1 || idx > arr.length) return unitTitle;
+    return `${code} Unidad ${idx}: ${arr[idx - 1]}`;
+  })();
+  const img = LEVEL_IMAGE_ALT[levelCode] ?? LEVEL_IMAGE_ALT["A1"]!;
+  const cap = LEVEL_IMAGE_CAPTION[levelCode] ?? LEVEL_IMAGE_CAPTION["A1"]!;
+  const definitions = vocabMap["default"]!;
   return {
     blocks: [
-      { type: "heading", text: `${levelCode} · ${unitTitle} — Lesson ${li}`, level: 2 },
-      { type: "paragraph", text: intro[levelCode] ?? intro["A1"]! },
+      {
+        type: "heading",
+        text: `${levelCode} · ${unitTitle} — Lesson ${li}`,
+        textEs: `${levelCode} · ${unitTitleEs} — Lección ${li}`,
+        level: 2,
+      },
+      {
+        type: "paragraph",
+        text: intro[levelCode] ?? intro["A1"]!,
+        textEs: introEs[levelCode] ?? introEs["A1"]!,
+      },
       {
         type: "image",
-        url: picsum(seed, 800, 450),
-        alt: `${levelCode} lesson illustration`,
-        caption: "Illustrative image — adds context to the topic",
+        url: coverForLevel(levelCode),
+        alt: img.en,
+        altEs: img.es,
+        caption: cap.en,
+        captionEs: cap.es,
       },
       {
         type: "vocab",
         items: [
           {
             word: "goal",
-            definition: "something you want to achieve",
+            definition: definitions[0]!.en,
+            definitionEs: definitions[0]!.es,
             example: "My goal is to speak fluently.",
           },
           {
             word: "practice",
-            definition: "repeated exercise to improve",
+            definition: definitions[1]!.en,
+            definitionEs: definitions[1]!.es,
             example: "Daily practice builds confidence.",
           },
         ],
@@ -56,6 +162,7 @@ function buildLessonContent(
       {
         type: "example",
         title: "Example in context",
+        titleEs: "Ejemplo en contexto",
         text: levelCode.startsWith("C")
           ? "What the lesson shows is not just grammar but how form encodes stance — use clefts and inversion to guide attention."
           : "She practices English every morning before work. It helps her remember new words.",
@@ -64,6 +171,8 @@ function buildLessonContent(
       {
         type: "callout",
         text: "Tip: read the content first, then hit “Practice” to try short exercises. Quizzes and exams come last.",
+        textEs:
+          "Consejo: lee el contenido primero y luego pulsa “Practicar” para hacer ejercicios breves. Los cuestionarios y exámenes van al final.",
         variant: "tip",
       },
     ],
@@ -622,7 +731,7 @@ async function seedLevel(levelCode: string) {
   const perLessonCount = levelCode.startsWith("C") ? 5 : levelCode.startsWith("B") ? 4 : 3;
 
   for (let ui = 1; ui <= 2; ui++) {
-    const unitCover = picsum(`${levelCode}-unit-${ui}`, 800, 400);
+    const unitCover = coverForLevel(levelCode);
     let unit = await prisma.unit.findFirst({ where: { levelId: level.id, orderIndex: ui } });
     if (!unit) {
       try {
@@ -645,18 +754,21 @@ async function seedLevel(levelCode: string) {
           },
         });
       }
-    } else if (!(unit as unknown as { coverImage: string | null }).coverImage) {
-      try {
-        unit = await prisma.unit.update({
-          where: { id: unit.id },
-          data: { coverImage: unitCover } as never,
-        });
-      } catch {}
+    } else {
+      const curCover = (unit as unknown as { coverImage: string | null }).coverImage;
+      if (!curCover || curCover.includes("picsum.photos")) {
+        try {
+          unit = await prisma.unit.update({
+            where: { id: unit.id },
+            data: { coverImage: unitCover } as never,
+          });
+        } catch {}
+      }
     }
     for (let li = 1; li <= 3; li++) {
       const isQuiz = li === 3;
       const kind = lessonKindFor(li, false);
-      const coverImage = picsum(`${levelCode}-U${ui}L${li}`, 800, 450);
+      const coverImage = coverForLevel(levelCode);
       const content =
         kind === "teach"
           ? buildLessonContent(levelCode, `${levelCode} Unit ${ui}: ${meta.unitNames[ui - 1]}`, li)
@@ -701,19 +813,39 @@ async function seedLevel(levelCode: string) {
         }
       } else {
         // backfill kind/content/coverImage for existing rows (idempotent)
+        // Also migrate picsum -> local and legacy monolingual blocks -> bilingual (textEs etc.)
+        const curCover = (lesson as unknown as { coverImage: string | null }).coverImage;
+        const curContent = (lesson as unknown as { content: unknown }).content as {
+          blocks?: unknown[];
+        } | null;
+        const hasBilingual =
+          curContent?.blocks?.some(
+            (b) => b && typeof b === "object" && "textEs" in (b as Record<string, unknown>),
+          ) ?? false;
+        const needsCover =
+          !curCover || (typeof curCover === "string" && curCover.includes("picsum.photos"));
         const needsUpdate =
           !(lesson as unknown as { kind: unknown }).kind ||
-          !(lesson as unknown as { coverImage: unknown }).coverImage ||
-          (kind === "teach" && !(lesson as unknown as { content: unknown }).content);
+          needsCover ||
+          (kind === "teach" && !(lesson as unknown as { content: unknown }).content) ||
+          (kind === "teach" && content && !hasBilingual);
         if (needsUpdate) {
           try {
             lesson = await prisma.lesson.update({
               where: { id: lesson.id },
               data: {
                 kind: kind as never,
-                coverImage,
+                ...(needsCover ? { coverImage } : {}),
+                ...(!curCover ? { coverImage } : {}),
                 ...(content ? { content: content as never } : {}),
               } as never,
+            });
+          } catch {}
+        } else if (needsCover) {
+          try {
+            lesson = await prisma.lesson.update({
+              where: { id: lesson.id },
+              data: { coverImage } as never,
             });
           } catch {}
         }
@@ -748,7 +880,7 @@ async function seedLevel(levelCode: string) {
           title: `${levelCode} Final Exam`,
           description: `Final exam for ${levelCode}`,
           orderIndex: 99,
-          coverImage: picsum(`${levelCode}-exam-unit`, 800, 400),
+          coverImage: coverForLevel(levelCode),
         } as never,
       });
     } catch {
@@ -761,13 +893,16 @@ async function seedLevel(levelCode: string) {
         },
       });
     }
-  } else if (!(examUnit as unknown as { coverImage: string | null }).coverImage) {
-    try {
-      examUnit = await prisma.unit.update({
-        where: { id: examUnit.id },
-        data: { coverImage: picsum(`${levelCode}-exam-unit`, 800, 400) } as never,
-      });
-    } catch {}
+  } else {
+    const cur = (examUnit as unknown as { coverImage: string | null }).coverImage;
+    if (!cur || cur.includes("picsum.photos")) {
+      try {
+        examUnit = await prisma.unit.update({
+          where: { id: examUnit.id },
+          data: { coverImage: coverForLevel(levelCode) } as never,
+        });
+      } catch {}
+    }
   }
   let examLesson = await prisma.lesson.findFirst({ where: { unitId: examUnit.id, orderIndex: 1 } });
   if (!examLesson) {
@@ -782,7 +917,7 @@ async function seedLevel(levelCode: string) {
           isQuiz: false,
           isExam: true,
           kind: "exam" as never,
-          coverImage: picsum(`${levelCode}-exam-lesson`, 800, 450),
+          coverImage: coverForLevel(levelCode),
           content: null as never,
         } as never,
       });
@@ -799,16 +934,22 @@ async function seedLevel(levelCode: string) {
         },
       });
     }
-  } else if (!(examLesson as unknown as { kind: unknown }).kind) {
-    try {
-      examLesson = await prisma.lesson.update({
-        where: { id: examLesson.id },
-        data: {
-          kind: "exam" as never,
-          coverImage: picsum(`${levelCode}-exam-lesson`, 800, 450),
-        } as never,
-      });
-    } catch {}
+  } else {
+    const needsKind = !(examLesson as unknown as { kind: unknown }).kind;
+    const curCover = (examLesson as unknown as { coverImage: string | null }).coverImage;
+    const needsCover =
+      !curCover || (typeof curCover === "string" && curCover.includes("picsum.photos"));
+    if (needsKind || needsCover) {
+      try {
+        examLesson = await prisma.lesson.update({
+          where: { id: examLesson.id },
+          data: {
+            ...(needsKind ? { kind: "exam" as never } : {}),
+            ...(needsCover ? { coverImage: coverForLevel(levelCode) } : {}),
+          } as never,
+        });
+      } catch {}
+    }
   }
   if ((await prisma.exercise.count({ where: { lessonId: examLesson.id } })) === 0) {
     for (let i = 0; i < 5; i++) {

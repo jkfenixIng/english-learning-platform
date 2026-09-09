@@ -16,36 +16,45 @@ type LevelRow = {
 
 const LEVEL_CODES_ALL = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 
-const LEVEL_META: Record<string, { gradient: string; accent: string; blurb: string }> = {
+const LEVEL_META: Record<
+  string,
+  { gradient: string; accent: string; blurb: string; blurbEs: string }
+> = {
   A1: {
     gradient: "from-emerald-500 to-teal-600",
     accent: "bg-emerald-500",
     blurb: "Greetings, introductions & everyday basics",
+    blurbEs: "Saludos, presentaciones y fundamentos cotidianos",
   },
   A2: {
     gradient: "from-sky-500 to-indigo-500",
     accent: "bg-sky-500",
     blurb: "Daily life, travel & simple work tasks",
+    blurbEs: "Vida diaria, viajes y tareas simples de trabajo",
   },
   B1: {
     gradient: "from-violet-500 to-purple-600",
     accent: "bg-violet-500",
     blurb: "Professional meetings, emails & culture",
+    blurbEs: "Reuniones profesionales, correos y cultura",
   },
   B2: {
     gradient: "from-indigo-500 to-violet-600",
     accent: "bg-indigo-500",
     blurb: "Academic & business argument structure",
+    blurbEs: "Estructura argumentativa académica y de negocios",
   },
   C1: {
     gradient: "from-amber-500 to-orange-600",
     accent: "bg-amber-500",
     blurb: "Advanced discourse & negotiation",
+    blurbEs: "Discurso avanzado y negociación",
   },
   C2: {
     gradient: "from-slate-800 to-slate-950",
     accent: "bg-slate-800",
     blurb: "Mastery — nuance, register & idioms",
+    blurbEs: "Dominio — matices, registro y modismos",
   },
 };
 
@@ -181,8 +190,9 @@ export default async function LevelsPage({ params }: { params: Promise<{ locale:
             {tDashboard("levels")}
           </h1>
           <p className="max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-            Choose your CEFR level — each level has focused units, teach → practice → quiz → exam
-            flow. Free mode keeps everything visible; locked progression filters later.
+            {locale === "es"
+              ? "Elige tu nivel MCER — cada nivel tiene unidades enfocadas con flujo enseñar → practicar → cuestionario → examen. El modo libre mantiene todo visible."
+              : "Choose your CEFR level — each level has focused units, teach → practice → quiz → exam flow. Free mode keeps everything visible; locked progression filters later."}
           </p>
         </div>
         {continueHint && (
@@ -202,6 +212,31 @@ export default async function LevelsPage({ params }: { params: Promise<{ locale:
           const meta = LEVEL_META[lvl.code] ?? LEVEL_META["A1"]!;
           const unitsCount = lvl.units?.length ?? 0;
           const cover = levelFallbackCover(lvl.code);
+          const displayTitle =
+            locale === "es"
+              ? lvl.title
+                  .replace(/^Beginner/, "Principiante")
+                  .replace(/^Elementary/, "Elemental")
+                  .replace(/^Intermediate/, "Intermedio")
+                  .replace(/^Upper Intermediate/, "Intermedio Alto")
+                  .replace(/^Advanced/, "Avanzado")
+                  .replace(/^Mastery/, "Dominio")
+              : lvl.title;
+          // use ES blurb if locale es
+          const blurb = locale === "es" ? meta.blurbEs : meta.blurb;
+          // translate title via level i18n if available
+          const titleForCard = (() => {
+            const map: Record<string, string> = {
+              A1: locale === "es" ? "Principiante (A1)" : "Beginner (A1)",
+              A2: locale === "es" ? "Elemental (A2)" : "Elementary (A2)",
+              B1: locale === "es" ? "Intermedio (B1)" : "Intermediate (B1)",
+              B2: locale === "es" ? "Intermedio Alto (B2)" : "Upper Intermediate (B2)",
+              C1: locale === "es" ? "Avanzado (C1)" : "Advanced (C1)",
+              C2: locale === "es" ? "Dominio (C2)" : "Mastery (C2)",
+            };
+            return map[lvl.code] ?? displayTitle;
+          })();
+          const unitsLabel = locale === "es" ? `${unitsCount} unidades` : `${unitsCount} units`;
           return (
             <Link
               key={lvl.code}
@@ -218,28 +253,21 @@ export default async function LevelsPage({ params }: { params: Promise<{ locale:
                       {lvl.code}
                     </span>
                     <span className="rounded-full bg-white/15 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">
-                      {unitsCount} units
+                      {unitsLabel}
                     </span>
                   </div>
                   <div>
                     <h2 className="text-[15px] leading-tight font-semibold text-white">
-                      {lvl.title}
+                      {titleForCard}
                     </h2>
                     <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/85">
-                      {meta.blurb}
+                      {blurb}
                     </p>
                   </div>
                 </div>
                 {/* subtle cover hint - use fallback image as overlay mix */}
                 <div className="absolute inset-0 opacity-20 mix-blend-overlay">
-                  <Image
-                    src={cover}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="400px"
-                    unoptimized
-                  />
+                  <Image src={cover} alt="" fill className="object-cover" sizes="400px" />
                 </div>
                 <div
                   className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"
@@ -248,7 +276,9 @@ export default async function LevelsPage({ params }: { params: Promise<{ locale:
               </div>
               <div className="p-4">
                 <p className="line-clamp-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                  {lvl.description}
+                  {locale === "es" && lvl.description.startsWith("CEFR")
+                    ? lvl.description.replace("CEFR", "MCER")
+                    : lvl.description}
                 </p>
                 <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-violet-600 group-hover:gap-1.5 group-hover:underline dark:text-violet-300">
                   {t("viewLessons")} <span aria-hidden>→</span>

@@ -1,13 +1,36 @@
 export type LessonKind = "teach" | "practice" | "quiz" | "exam";
 
 export type LessonContentBlock =
-  | { type: "heading"; text: string; level?: 2 | 3 }
-  | { type: "paragraph"; text: string }
-  | { type: "image"; url: string; alt: string; caption?: string }
-  | { type: "vocab"; items: { word: string; definition: string; example?: string }[] }
-  | { type: "example"; title?: string; text: string; translation?: string }
-  | { type: "list"; items: string[]; ordered?: boolean }
-  | { type: "callout"; text: string; variant?: "info" | "tip" | "warning" };
+  | { type: "heading"; text: string; textEs?: string; level?: 2 | 3 }
+  | { type: "paragraph"; text: string; textEs?: string }
+  | {
+      type: "image";
+      url: string;
+      alt: string;
+      altEs?: string;
+      caption?: string;
+      captionEs?: string;
+    }
+  | {
+      type: "vocab";
+      items: {
+        word: string;
+        definition: string;
+        definitionEs?: string;
+        example?: string;
+        exampleEs?: string;
+      }[];
+    }
+  | {
+      type: "example";
+      title?: string;
+      titleEs?: string;
+      text: string;
+      textEs?: string;
+      translation?: string;
+    }
+  | { type: "list"; items: string[]; itemsEs?: string[]; ordered?: boolean }
+  | { type: "callout"; text: string; textEs?: string; variant?: "info" | "tip" | "warning" };
 
 export interface LessonContent {
   blocks: LessonContentBlock[];
@@ -59,7 +82,21 @@ export function isEvaluationKind(kind: LessonKind): boolean {
   return kind === "quiz" || kind === "exam";
 }
 
-export function lessonKindLabel(kind: LessonKind): string {
+export function lessonKindLabel(kind: LessonKind, locale: string = "en"): string {
+  if (locale === "es") {
+    switch (kind) {
+      case "teach":
+        return "Aprender";
+      case "practice":
+        return "Práctica";
+      case "quiz":
+        return "Cuestionario";
+      case "exam":
+        return "Examen";
+      default:
+        return kind;
+    }
+  }
   switch (kind) {
     case "teach":
       return "Learn";

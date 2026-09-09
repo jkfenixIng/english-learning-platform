@@ -3,6 +3,12 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "../../../../../lib/db";
 import { resolveLessonKind, lessonKindBadgeClasses } from "../../../../../lib/lesson/types";
+import {
+  getUnitTitle,
+  getUnitDescription,
+  getLessonTitle,
+  getLessonObjectives,
+} from "../../../../../lib/lesson/localize";
 import { isCurrentUserAdmin } from "../../../../../lib/auth/requireAdmin";
 
 type UnitRow = {
@@ -141,6 +147,9 @@ export default async function UnitPage({
     return <p className="text-sm text-gray-500">{tUnit("notFound")}</p>;
   }
 
+  const displayUnitTitle = getUnitTitle(unit.title, locale);
+  const displayUnitDesc = getUnitDescription(unit.description, locale);
+
   return (
     <div className="space-y-5">
       {/* Unit header with coverImage */}
@@ -149,17 +158,18 @@ export default async function UnitPage({
           <div className="relative aspect-[16/6] w-full bg-gray-100 dark:bg-gray-800">
             <Image
               src={unit.coverImage}
-              alt={tUnit("coverAlt", { title: unit.title })}
+              alt={tUnit("coverAlt", { title: displayUnitTitle })}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 900px"
               priority={false}
+              unoptimized={unit.coverImage.includes("picsum.photos")}
             />
           </div>
         ) : null}
         <div className="p-5">
-          <h1 className="text-xl font-bold tracking-tight">{unit.title}</h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{unit.description}</p>
+          <h1 className="text-xl font-bold tracking-tight">{displayUnitTitle}</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{displayUnitDesc}</p>
         </div>
       </div>
 
@@ -167,6 +177,9 @@ export default async function UnitPage({
         {unit.lessons.map((l) => {
           const kind = resolveLessonKind(l as never);
           const kindLabel = tLesson(`kinds.${kind}`);
+          const displayTitle = getLessonTitle(l.title, locale);
+          const displayObjectives = getLessonObjectives(l.objectives, locale);
+          const needsUnopt = Boolean(l.coverImage?.includes("picsum.photos"));
           return (
             <Link
               key={l.id}
@@ -175,7 +188,14 @@ export default async function UnitPage({
             >
               {l.coverImage ? (
                 <div className="relative hidden h-auto w-28 shrink-0 bg-gray-100 sm:block">
-                  <Image src={l.coverImage} alt="" fill className="object-cover" sizes="112px" />
+                  <Image
+                    src={l.coverImage}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="112px"
+                    unoptimized={needsUnopt}
+                  />
                 </div>
               ) : (
                 <div className="hidden w-28 shrink-0 items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 text-lg sm:flex dark:from-indigo-950/30 dark:to-sky-950/30">
@@ -186,7 +206,7 @@ export default async function UnitPage({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium">
-                      {l.orderIndex}. {l.title}
+                      {l.orderIndex}. {displayTitle}
                     </span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${lessonKindBadgeClasses(kind)}`}
@@ -195,7 +215,7 @@ export default async function UnitPage({
                     </span>
                   </div>
                   <p className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
-                    {l.objectives}
+                    {displayObjectives}
                   </p>
                   <p className="mt-1 text-xs text-gray-400">
                     {tUnit("min", { minutes: l.estimatedMinutes })}

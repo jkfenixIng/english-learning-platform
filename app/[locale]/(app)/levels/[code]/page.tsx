@@ -3,6 +3,12 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "../../../../../lib/db";
 import { NavigationToggle } from "../../../../../components/cefr/NavigationToggle";
+import {
+  getLevelTitle,
+  getLevelDescription,
+  getUnitTitle,
+  getUnitDescription,
+} from "../../../../../lib/lesson/localize";
 
 type UnitRow = {
   id: string;
@@ -151,6 +157,9 @@ export default async function LevelPage({
     );
   }
 
+  const displayTitle = getLevelTitle(code, locale, level.title);
+  const displayDesc = getLevelDescription(code, locale, level.description);
+
   return (
     <div className="space-y-5">
       <Breadcrumbs code={code} locale={locale} />
@@ -159,55 +168,59 @@ export default async function LevelPage({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {level.title}
+            {displayTitle}
           </h1>
           <p className="max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            {level.description}
+            {displayDesc}
           </p>
         </div>
         <NavigationToggle />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {units.map((u) => (
-          <Link
-            key={u.id}
-            href={`/units/${u.id}`}
-            className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none dark:border-slate-800 dark:bg-slate-900"
-          >
-            {u.coverImage ? (
-              <div className="relative aspect-[16/9] w-full bg-slate-100 dark:bg-slate-800">
-                <Image
-                  src={u.coverImage}
-                  alt={t("coverAlt", { title: u.title })}
-                  fill
-                  className="object-cover transition duration-300 group-hover:scale-[1.02]"
-                  sizes="(max-width: 768px) 100vw, 400px"
-                  unoptimized={u.coverImage.includes("picsum.photos")}
-                />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition group-hover:opacity-100" />
-              </div>
-            ) : (
-              <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-violet-50 to-slate-50 text-2xl dark:from-violet-950/30 dark:to-slate-900">
-                📚
-              </div>
-            )}
-            <div className="p-4">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                <span className="mr-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white dark:bg-white dark:text-slate-900">
-                  {u.orderIndex}
+        {units.map((u) => {
+          const title = getUnitTitle(u.title, locale);
+          const desc = getUnitDescription(u.description, locale);
+          return (
+            <Link
+              key={u.id}
+              href={`/units/${u.id}`}
+              className="group overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-md focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none dark:border-slate-800 dark:bg-slate-900"
+            >
+              {u.coverImage ? (
+                <div className="relative aspect-[16/9] w-full bg-slate-100 dark:bg-slate-800">
+                  <Image
+                    src={u.coverImage}
+                    alt={t("coverAlt", { title })}
+                    fill
+                    className="object-cover transition duration-300 group-hover:scale-[1.02]"
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    unoptimized={u.coverImage.includes("picsum.photos")}
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition group-hover:opacity-100" />
+                </div>
+              ) : (
+                <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-violet-50 to-slate-50 text-2xl dark:from-violet-950/30 dark:to-slate-900">
+                  📚
+                </div>
+              )}
+              <div className="p-4">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                  <span className="mr-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white dark:bg-white dark:text-slate-900">
+                    {u.orderIndex}
+                  </span>
+                  {title}
+                </p>
+                <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                  {desc}
+                </p>
+                <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-violet-600 group-hover:gap-1.5 group-hover:underline dark:text-violet-300">
+                  {t("viewLessons")} <span aria-hidden>→</span>
                 </span>
-                {u.title}
-              </p>
-              <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                {u.description}
-              </p>
-              <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-violet-600 group-hover:gap-1.5 group-hover:underline dark:text-violet-300">
-                {t("viewLessons")} <span aria-hidden>→</span>
-              </span>
-            </div>
-          </Link>
-        ))}
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {/* progressionMode note */}

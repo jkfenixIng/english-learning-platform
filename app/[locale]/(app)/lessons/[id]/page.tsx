@@ -8,6 +8,11 @@ import {
   lessonKindBadgeClasses,
 } from "../../../../../lib/lesson/types";
 import type { LessonContent } from "../../../../../lib/lesson/types";
+import {
+  getLessonTitle,
+  getLessonObjectives,
+  localizeContent,
+} from "../../../../../lib/lesson/localize";
 import { isCurrentUserAdmin } from "../../../../../lib/auth/requireAdmin";
 
 type LessonRow = {
@@ -156,9 +161,12 @@ export default async function LessonPage({
 
   const kind = resolveLessonKind(lesson as never);
   const teach = isTeachKind(kind);
-  const content = parseContent(lesson.content);
+  const rawContent = parseContent(lesson.content);
+  const content = localizeContent(rawContent, locale);
   const exercises = lesson.exercises ?? [];
   const kindLabel = t(`kinds.${kind}`);
+  const displayTitle = getLessonTitle(lesson.title, locale);
+  const displayObjectives = getLessonObjectives(lesson.objectives, locale);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -185,8 +193,8 @@ export default async function LessonPage({
             </span>
           ) : null}
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">{lesson.title}</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{lesson.objectives}</p>
+        <h1 className="text-2xl font-bold tracking-tight">{displayTitle}</h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{displayObjectives}</p>
       </div>
 
       {teach ? (
@@ -208,7 +216,8 @@ export default async function LessonPage({
               content={content}
               bodyMarkdown={lesson.bodyMarkdown}
               coverImage={lesson.coverImage}
-              title={lesson.title}
+              title={displayTitle}
+              locale={locale}
             />
             {exercises.length > 0 ? (
               <div className="mt-6 flex justify-end">
@@ -276,7 +285,12 @@ export default async function LessonPage({
 
           {lesson.coverImage ? (
             <div className="overflow-hidden rounded-xl border bg-white dark:border-gray-800">
-              <TeachingContent content={null} coverImage={lesson.coverImage} title={lesson.title} />
+              <TeachingContent
+                content={null}
+                coverImage={lesson.coverImage}
+                title={displayTitle}
+                locale={locale}
+              />
             </div>
           ) : null}
 
