@@ -29,7 +29,7 @@ export function FillBlanksRenderer({
                 placeholder={blank.hint ?? t("blankPlaceholder")}
                 value={answers[blank.id] ?? ""}
                 onChange={(e) => setAnswers((p) => ({ ...p, [blank.id]: e.target.value }))}
-                className="w-32 rounded border px-2 py-1 text-sm"
+                className="focus-visible:ring-primary-500 w-32 rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
               />
             );
           }

@@ -47,12 +47,12 @@ export default function ExerciseRunner({ exercise }: Props) {
   };
 
   return (
-    <div className="rounded-xl border bg-white p-6 dark:bg-gray-900">
+    <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
       <Renderer prompt={exercise.prompt as never} onSubmit={handleSubmit} />
       {loading ? <p className="mt-3 text-sm text-gray-500">{t("evaluating")}</p> : null}
       {result ? (
         <div
-          className={`mt-4 rounded p-3 text-sm ${result.score >= 70 ? "bg-green-50 text-green-800" : "bg-amber-50 text-amber-800"}`}
+          className={`mt-4 rounded border p-3 text-sm ${result.score >= 70 ? "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200" : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200"}`}
         >
           <p className="font-semibold">{t("scoreLabel", { score: result.score })}</p>
           <p>{result.feedback}</p>

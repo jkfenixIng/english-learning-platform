@@ -20,8 +20,8 @@ export function GradedReadingRenderer({
   return (
     <div className="space-y-4">
       {heroImage ? (
-        <div className="overflow-hidden rounded-xl border bg-white dark:border-gray-700">
-          <div className="relative aspect-[16/9] w-full bg-gray-50 dark:bg-gray-800">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="relative aspect-[16/9] w-full bg-slate-50 dark:bg-slate-800">
             <Image
               src={heroImage.url}
               alt={heroImage.alt}
@@ -40,7 +40,7 @@ export function GradedReadingRenderer({
           {prompt.images.slice(1, 3).map((img) => (
             <div
               key={img.url}
-              className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-gray-50"
+              className="relative aspect-[4/3] overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800"
             >
               <Image src={img.url} alt={img.alt} fill className="object-cover" sizes="320px" />
             </div>
@@ -48,7 +48,7 @@ export function GradedReadingRenderer({
         </div>
       ) : null}
       <h3 className="text-lg font-semibold">{prompt.title}</h3>
-      <div className="rounded bg-gray-50 p-4 text-sm leading-relaxed dark:bg-gray-900">
+      <div className="rounded border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
         {prompt.passage}
       </div>
       {prompt.vocab?.length ? (
@@ -66,7 +66,10 @@ export function GradedReadingRenderer({
       ) : null}
       <div className="space-y-3">
         {prompt.questions.map((q) => (
-          <div key={q.id} className="rounded border p-3 dark:border-gray-700">
+          <div
+            key={q.id}
+            className="rounded border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900"
+          >
             <p className="mb-2 text-sm font-medium">{q.question}</p>
             <div className="space-y-1">
               {q.options.map((o) => (

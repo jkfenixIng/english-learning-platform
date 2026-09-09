@@ -31,7 +31,9 @@ export function SpeakingRecordRenderer({
   return (
     <div className="space-y-3">
       <p className="font-medium">{prompt.instruction ?? t("say")}</p>
-      <p className="rounded bg-indigo-50 p-3 text-indigo-900">{prompt.text}</p>
+      <p className="rounded border border-indigo-100 bg-indigo-50 p-3 text-indigo-900 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-100">
+        {prompt.text}
+      </p>
       <div className="flex gap-2">
         <button onClick={() => speakText(prompt.text)} className="rounded border px-3 py-2 text-sm">
           {t("playReference")}
@@ -49,13 +51,15 @@ export function SpeakingRecordRenderer({
         )}
       </div>
       {transcript ? (
-        <p className="rounded bg-green-50 p-2 text-sm">{t("heard", { transcript })}</p>
+        <p className="rounded border border-green-200 bg-green-50 p-2 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+          {t("heard", { transcript })}
+        </p>
       ) : null}
       <input
         value={typed}
         onChange={(e) => setTyped(e.target.value)}
         placeholder={supported ? t("orTypeFallback") : t("typeResponse")}
-        className="w-full rounded border px-3 py-2 text-sm"
+        className="focus-visible:ring-primary-500 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
       />
       <button
         onClick={() => onSubmit({ transcript: transcript || typed, fallbackTyped: typed })}

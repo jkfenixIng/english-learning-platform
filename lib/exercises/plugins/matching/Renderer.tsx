@@ -29,8 +29,8 @@ export function MatchingRenderer({
   return (
     <div className="space-y-4">
       {heroImage ? (
-        <div className="overflow-hidden rounded-xl border bg-white dark:border-gray-700">
-          <div className="relative aspect-[16/9] w-full bg-gray-50 dark:bg-gray-800">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="relative aspect-[16/9] w-full bg-slate-50 dark:bg-slate-800">
             <Image
               src={heroImage.url}
               alt={heroImage.alt}
@@ -50,7 +50,7 @@ export function MatchingRenderer({
             <button
               key={p.id}
               onClick={() => handleLeft(p.left)}
-              className={`w-full rounded border p-2 text-left text-sm ${leftSel === p.left ? "border-indigo-400 bg-indigo-100" : "bg-white dark:bg-gray-900"} ${matches[p.left] ? "opacity-60" : ""}`}
+              className={`w-full rounded border p-2 text-left text-sm ${leftSel === p.left ? "border-indigo-400 bg-indigo-100 dark:border-indigo-500 dark:bg-indigo-950 dark:text-indigo-100" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"} ${matches[p.left] ? "opacity-60" : ""}`}
             >
               {p.left} {matches[p.left] ? `→ ${matches[p.left]}` : ""}
             </button>
@@ -61,7 +61,7 @@ export function MatchingRenderer({
             <button
               key={r}
               onClick={() => handleRight(r)}
-              className="w-full rounded border bg-white p-2 text-left text-sm hover:bg-gray-50 dark:bg-gray-900"
+              className="w-full rounded border border-slate-200 bg-white p-2 text-left text-sm text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
             >
               {r}
             </button>

@@ -20,8 +20,8 @@ export function ComprehensionRenderer({
   return (
     <div className="space-y-4">
       {heroImage ? (
-        <div className="overflow-hidden rounded-xl border bg-white dark:border-gray-700">
-          <div className="relative aspect-[16/9] w-full bg-gray-50 dark:bg-gray-800">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="relative aspect-[16/9] w-full bg-slate-50 dark:bg-slate-800">
             <Image
               src={heroImage.url}
               alt={heroImage.alt}
@@ -35,7 +35,7 @@ export function ComprehensionRenderer({
           ) : null}
         </div>
       ) : null}
-      <div className="rounded bg-gray-50 p-4 text-sm leading-relaxed dark:bg-gray-900">
+      <div className="rounded border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
         {prompt.passage}
       </div>
       <p className="font-medium">{prompt.question}</p>
@@ -43,7 +43,7 @@ export function ComprehensionRenderer({
         {prompt.options.map((o) => (
           <label
             key={o}
-            className={`flex cursor-pointer items-center gap-2 rounded border p-2 ${answer === o ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30" : "bg-white dark:bg-gray-900"}`}
+            className={`flex cursor-pointer items-center gap-2 rounded border p-2 ${answer === o ? "border-indigo-500 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30 dark:text-indigo-100" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"}`}
           >
             <input
               type="radio"

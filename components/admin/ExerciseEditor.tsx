@@ -73,7 +73,10 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
   };
 
   return (
-    <div className="rounded border p-4 dark:border-gray-700" aria-label={t("editorAria")}>
+    <div
+      className="rounded border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"
+      aria-label={t("editorAria")}
+    >
       <h3 className="font-semibold">{t("title")}</h3>
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
         <label className="text-xs">
@@ -81,7 +84,7 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
           <select
             value={type}
             onChange={(e) => setType(e.target.value as never)}
-            className="w-full rounded border px-2 py-1"
+            className="focus-visible:ring-primary-500 w-full rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
             aria-label={t("typeAria")}
           >
             {TYPES.map((typeVal) => (
@@ -97,7 +100,7 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
             value={lessonId ?? ""}
             readOnly
             placeholder={t("lessonPlaceholder")}
-            className="w-full rounded border bg-gray-50 px-2 py-1 text-xs"
+            className="w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-900 placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
         </label>
       </div>
@@ -107,7 +110,7 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           rows={4}
-          className="w-full rounded border px-2 py-1 font-mono text-xs"
+          className="focus-visible:ring-primary-500 w-full rounded border border-slate-200 bg-white px-2 py-1 font-mono text-xs text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
           aria-label={t("promptAria")}
         />
       </label>
@@ -117,12 +120,12 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
           value={solution}
           onChange={(e) => setSolution(e.target.value)}
           rows={4}
-          className="w-full rounded border px-2 py-1 font-mono text-xs"
+          className="focus-visible:ring-primary-500 w-full rounded border border-slate-200 bg-white px-2 py-1 font-mono text-xs text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
           aria-label={t("solutionAria")}
         />
       </label>
 
-      <fieldset className="mt-4 rounded border p-3 dark:border-gray-700">
+      <fieldset className="mt-4 rounded border border-slate-200 p-3 dark:border-slate-700">
         <legend className="px-1 text-xs font-semibold">{t("imagesTitle")}</legend>
         <p className="text-[11px] text-gray-500">{t("imagesDesc")}</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-[2fr_2fr_1.5fr_auto]">
@@ -130,27 +133,27 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
             value={draftUrl}
             onChange={(e) => setDraftUrl(e.target.value)}
             placeholder={t("imageUrlPlaceholder")}
-            className="rounded border px-2 py-1 text-xs"
+            className="focus-visible:ring-primary-500 rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
             aria-label={t("imageUrlAria")}
           />
           <input
             value={draftAlt}
             onChange={(e) => setDraftAlt(e.target.value)}
             placeholder={t("imageAltPlaceholder")}
-            className="rounded border px-2 py-1 text-xs"
+            className="focus-visible:ring-primary-500 rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
             aria-label={t("imageAltAria")}
           />
           <input
             value={draftCaption}
             onChange={(e) => setDraftCaption(e.target.value)}
             placeholder={t("captionPlaceholder")}
-            className="rounded border px-2 py-1 text-xs"
+            className="focus-visible:ring-primary-500 rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
             aria-label={t("captionAria")}
           />
           <button
             type="button"
             onClick={addImage}
-            className="rounded bg-gray-900 px-3 py-1 text-xs text-white dark:bg-white dark:text-gray-900"
+            className="rounded bg-slate-900 px-3 py-1 text-xs text-white dark:bg-white dark:text-slate-900"
           >
             {t("add")}
           </button>
@@ -159,8 +162,11 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
         {images.length > 0 ? (
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {images.map((img, idx) => (
-              <li key={idx} className="flex gap-2 rounded border p-2 dark:border-gray-700">
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-gray-100">
+              <li
+                key={idx}
+                className="flex gap-2 rounded border border-slate-200 p-2 dark:border-slate-700"
+              >
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded bg-slate-100 dark:bg-slate-800">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={img.url} alt={img.alt} className="h-full w-full object-cover" />
                 </div>
@@ -172,7 +178,7 @@ export function ExerciseEditor({ lessonId }: { lessonId?: string }) {
                 <button
                   type="button"
                   onClick={() => removeImage(idx)}
-                  className="h-fit rounded border px-2 py-1 text-xs"
+                  className="h-fit rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                   aria-label={t("removeAria", { index: idx + 1 })}
                 >
                   {t("remove")}

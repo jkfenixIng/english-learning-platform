@@ -23,10 +23,10 @@ export function FlashcardRenderer({
     <div className="space-y-4">
       <div
         onClick={() => setFlipped(!flipped)}
-        className="cursor-pointer rounded-xl border bg-white p-6 text-center shadow transition hover:shadow-md dark:bg-gray-900"
+        className="cursor-pointer rounded-xl border border-slate-200 bg-white p-6 text-center shadow transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
       >
         {primaryImage ? (
-          <div className="relative mx-auto mb-3 h-32 w-full max-w-[240px] overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-800">
+          <div className="relative mx-auto mb-3 h-32 w-full max-w-[240px] overflow-hidden rounded-lg bg-slate-50 dark:bg-slate-800">
             <Image
               src={primaryImage.url}
               alt={primaryImage.alt}
@@ -39,7 +39,10 @@ export function FlashcardRenderer({
         {prompt.images && prompt.images.length > 1 ? (
           <div className="mb-3 flex justify-center gap-2">
             {prompt.images.slice(1, 3).map((img) => (
-              <div key={img.url} className="relative h-16 w-16 overflow-hidden rounded bg-gray-50">
+              <div
+                key={img.url}
+                className="relative h-16 w-16 overflow-hidden rounded bg-slate-50 dark:bg-slate-800"
+              >
                 <Image src={img.url} alt={img.alt} fill className="object-cover" sizes="64px" />
               </div>
             ))}
@@ -52,7 +55,7 @@ export function FlashcardRenderer({
         value={typed}
         onChange={(e) => setTyped(e.target.value)}
         placeholder={t("typeTranslationPlaceholder")}
-        className="w-full rounded border px-3 py-2 dark:bg-gray-900"
+        className="focus-visible:ring-primary-500 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
       />
       <div className="flex gap-2">
         <button
@@ -61,7 +64,10 @@ export function FlashcardRenderer({
         >
           {t("reviewed")}
         </button>
-        <button onClick={() => setFlipped(!flipped)} className="rounded border px-4 py-2">
+        <button
+          onClick={() => setFlipped(!flipped)}
+          className="rounded border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
           {flipped ? t("hide") : t("reveal")}
         </button>
       </div>

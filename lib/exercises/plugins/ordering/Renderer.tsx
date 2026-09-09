@@ -24,17 +24,20 @@ export function OrderingRenderer({
           <button
             key={tk}
             onClick={() => toggle(tk)}
-            className={`rounded-full border px-3 py-1 text-sm ${selected.includes(tk) ? "bg-primary text-white" : "bg-white"}`}
+            className={`rounded-full border px-3 py-1 text-sm ${selected.includes(tk) ? "border-primary bg-primary dark:border-primary-600 text-white" : "border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"}`}
           >
             {tk}
           </button>
         ))}
       </div>
-      <div className="min-h-10 rounded border bg-gray-50 p-2 text-sm">
+      <div className="min-h-10 rounded border border-slate-200 bg-slate-50 p-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
         {selected.join(" ") || "—"}
       </div>
       <div className="flex gap-2">
-        <button onClick={() => setSelected([])} className="rounded border px-3 py-2 text-sm">
+        <button
+          onClick={() => setSelected([])}
+          className="rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
           {t("clear")}
         </button>
         <button

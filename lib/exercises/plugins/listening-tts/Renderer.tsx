@@ -26,19 +26,22 @@ export function ListeningTtsRenderer({
         <select
           value={rate}
           onChange={(e) => setRate(Number(e.target.value))}
-          className="rounded border px-2 py-1 text-sm"
+          className="focus-visible:ring-primary-500 rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         >
           <option value={0.75}>0.75x</option>
           <option value={1}>1x</option>
           <option value={1.25}>1.25x</option>
         </select>
       </div>
-      <p className="text-sm text-gray-500">{t("listenAnswer")}</p>
-      <p className="font-medium">{prompt.question}</p>
+      <p className="text-sm text-slate-500 dark:text-slate-400">{t("listenAnswer")}</p>
+      <p className="font-medium text-slate-900 dark:text-slate-100">{prompt.question}</p>
       {prompt.options ? (
         <div className="space-y-2">
           {prompt.options.map((o) => (
-            <label key={o} className="flex items-center gap-2 rounded border p-2">
+            <label
+              key={o}
+              className="flex items-center gap-2 rounded border border-slate-200 bg-white p-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            >
               <input
                 type="radio"
                 name="ans"
@@ -55,7 +58,7 @@ export function ListeningTtsRenderer({
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
           placeholder={t("yourAnswer")}
-          className="w-full rounded border px-3 py-2"
+          className="focus-visible:ring-primary-500 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
       )}
       <button

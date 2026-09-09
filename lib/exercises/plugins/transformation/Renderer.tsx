@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Input } from "@/components/ui/Input";
 import type { TransformationPrompt, TransformationAnswer } from "./schema";
 export function TransformationRenderer({
   prompt,
@@ -14,13 +15,10 @@ export function TransformationRenderer({
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium">{prompt.instruction}</p>
-      <p className="rounded bg-gray-50 p-3 italic">{prompt.sentence}</p>
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder={t("yourAnswer")}
-        className="w-full rounded border px-3 py-2"
-      />
+      <p className="rounded border border-slate-200 bg-slate-50 p-3 text-slate-900 italic dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
+        {prompt.sentence}
+      </p>
+      <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("yourAnswer")} />
       <button
         onClick={() => onSubmit({ text })}
         className="bg-primary rounded px-4 py-2 text-white"

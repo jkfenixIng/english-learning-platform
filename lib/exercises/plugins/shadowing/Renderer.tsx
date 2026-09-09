@@ -39,8 +39,10 @@ export function ShadowingRenderer({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-600">{t("listenShadow")}</p>
-      <p className="rounded bg-indigo-50 p-3 font-medium dark:bg-indigo-950">{prompt.reference}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-400">{t("listenShadow")}</p>
+      <p className="rounded border border-indigo-100 bg-indigo-50 p-3 font-medium text-indigo-900 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-100">
+        {prompt.reference}
+      </p>
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={play}
@@ -54,7 +56,7 @@ export function ShadowingRenderer({
           <select
             value={speed}
             onChange={(e) => setSpeed(Number(e.target.value))}
-            className="rounded border px-2 py-1 dark:bg-gray-800"
+            className="rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           >
             <option value={SPEEDS.slow}>{t("slow")}</option>
             <option value={SPEEDS.normal}>{t("normal")}</option>
@@ -76,7 +78,7 @@ export function ShadowingRenderer({
         {transcript ? (
           <button
             onClick={() => setTranscript("")}
-            className="rounded border px-3 py-2 text-xs"
+            className="rounded border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
             aria-label={t("retryAction")}
           >
             {t("retryAction")}
@@ -85,7 +87,7 @@ export function ShadowingRenderer({
       </div>
       {transcript ? (
         <>
-          <p className="rounded bg-green-50 p-2 text-sm dark:bg-green-950">
+          <p className="rounded border border-green-200 bg-green-50 p-2 text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
             {t("heard", { transcript })}
           </p>
           <TranscriptDiff reference={prompt.reference} transcript={transcript} />

@@ -133,7 +133,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-bold">{t("title")}</h1>
-      <div className="space-y-4 rounded-xl border bg-white p-4 dark:bg-gray-900">
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <div>
           <p className="text-sm font-medium">{t("navigationMode")}</p>
           <div className="mt-2 flex gap-2">
@@ -221,7 +221,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-white p-4 dark:bg-gray-900">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-sm font-semibold">{t("aiTitle")}</h2>
         <p className="mt-1 text-xs text-gray-500">{t("aiDesc")}</p>
         {aiLoading ? (
@@ -243,7 +243,7 @@ export default function SettingsPage() {
               <select
                 value={ai.provider}
                 onChange={(e) => setAi((s) => ({ ...s, provider: e.target.value }))}
-                className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
+                className="focus-visible:ring-primary-500 mt-1 w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 aria-label={t("providerAria")}
               >
                 <option value="mock">{t("providerMock")}</option>
@@ -259,7 +259,7 @@ export default function SettingsPage() {
                 value={apiKeyInput}
                 onChange={(e) => setApiKeyInput(e.target.value)}
                 placeholder={t("apiKeyPlaceholder")}
-                className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
+                className="focus-visible:ring-primary-500 mt-1 w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
                 aria-label={t("apiKeyAria")}
                 autoComplete="off"
               />
@@ -280,7 +280,7 @@ export default function SettingsPage() {
                 value={modelInput}
                 onChange={(e) => setModelInput(e.target.value)}
                 placeholder={t("modelPlaceholder")}
-                className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
+                className="focus-visible:ring-primary-500 mt-1 w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
                 aria-label={t("modelAria")}
               />
             </div>
@@ -297,7 +297,7 @@ export default function SettingsPage() {
               <button
                 onClick={revokeAi}
                 disabled={aiSaving}
-                className="rounded border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50 dark:hover:bg-gray-800"
+                className="rounded border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                 aria-label={t("revokeAiAria")}
               >
                 {t("revoke")}

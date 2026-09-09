@@ -51,7 +51,9 @@ export function PronunciationRenderer({
         )}
       </div>
       {transcript ? (
-        <p className="rounded bg-green-50 p-2 text-center text-sm">{t("heard", { transcript })}</p>
+        <p className="rounded border border-green-200 bg-green-50 p-2 text-center text-sm text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200">
+          {t("heard", { transcript })}
+        </p>
       ) : null}
       <button
         onClick={() => onSubmit({ transcript })}
