@@ -261,7 +261,7 @@ npx prisma migrate dev --name init   # creates tables locally
 npm run seed                          # idempotent: Levels A1-C2, units, lessons, 13-type exercises, badges, shop, placement test
 ```
 
-> **Supabase RLS (optional for Slice 1):** Seed creates public read for catalog + owner isolation for user data via the server DAL. For full Row Level Security, run the SQL in `prisma/migrations/*_rls.sql` manually via Supabase SQL Editor.
+> **Supabase RLS (recomendado, 0 USD):** Seed crea catálogo público + aislamiento owner vía DAL. Para defensa en profundidad, aplica Row Level Security gratis: pega `supabase/migrations/001_rls.sql` en **Supabase Dashboard → SQL Editor → Run** (o `psql $DATABASE_URL -f supabase/migrations/001_rls.sql` / `supabase db push`). Idempotente (`DROP POLICY IF EXISTS`). Prisma (`DATABASE_URL` rol `postgres`) bypassa RLS — seed/admin siguen funcionando; RLS protege acceso directo Supabase JS (anon/auth) y `service_role` bypassa por diseño. Verifica con `SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public';` y prueba anon `SELECT * FROM attempts` → 0 filas si no eres owner. Ver `docs/AUDIT-FIXES.md` §A1.
 
 ### 4. Run Dev Server
 

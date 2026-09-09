@@ -19,7 +19,9 @@
     "admin:promote": "tsx scripts/promote-admin.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy"
+    "db:deploy": "prisma migrate deploy",
+    "test:e2e": "playwright test",
+    "a11y:check": "eslint . --ext .tsx --rule 'jsx-a11y/alt-text: error' && echo 'a11y eslint ok (for full axe run: npx @axe-core/cli http://localhost:3000 --save a11y.json)'"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.0",
@@ -46,6 +48,7 @@
     "eslint": "^9.20.0",
     "eslint-config-next": "15.3.0",
     "eslint-config-prettier": "^10.0.0",
+    "@playwright/test": "^1.48.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "jsdom": "^26.0.0",
     "prettier": "^3.5.0",

@@ -166,31 +166,94 @@ export async function getUserChallenges(userId: string) {
   return prisma.challengeParticipant.findMany({ where: { userId }, include: { challenge: true } });
 }
 
-// Scheduler stub: rotate daily/weekly challenges; called by Vercel Cron route
-export async function schedulerTick(now = new Date()) {
-  // idempotent: ensures at least one active daily challenge exists
-  const active = await prisma.challenge.findMany({
-    where: { type: "daily", startAt: { lte: now }, endAt: { gte: now } },
-  });
-  if (active.length === 0) {
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const title = `Daily Sprint — ${now.toISOString().slice(0, 10)}`;
-    const exists = await prisma.challenge.findFirst({ where: { title } });
-    if (!exists) {
-      await prisma.challenge.create({
-        data: {
-          id: crypto.randomUUID(),
-          type: "daily",
-          title,
-          description: "Complete 5 exercises today",
-          rule: { metric: "exercises", count: 5 } as never,
-          startAt: new Date(now.setHours(0, 0, 0, 0)),
-          endAt: tomorrow,
-          rewardXp: 30,
-        } as never,
-      });
+/**
+ * Background job helper — retry with exponential backoff, 0 USD (no queue infra).
+ * Used for scheduler and any async op that should survive transient DB hiccups.
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  opts?: { retries?: number; baseMs?: number },
+): Promise<T> {
+  const retries = opts?.retries ?? 3;
+  const baseMs = opts?.baseMs ?? 200;
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (attempt === retries) break;
+      const delay = baseMs * 2 ** attempt + Math.random() * 100;
+      await new Promise((r) => setTimeout(r, delay));
+      console.error(
+        `[withRetry] attempt ${attempt + 1} failed, retrying in ${Math.round(delay)}ms`,
+        e,
+      );
     }
   }
-  return { checkedAt: now.toISOString() };
+  throw lastErr;
+}
+
+async function ensureChallengeType(type: "daily" | "weekly" | "timed" | "streak", now: Date) {
+  const { defaultChallengeWindows } = await import("./rules");
+  const { startAt, endAt } = defaultChallengeWindows(type, now);
+  const active = await prisma.challenge.findMany({
+    where: { type, startAt: { lte: now }, endAt: { gte: now } },
+  });
+  if (active.length > 0) return { type, created: false, count: active.length };
+  // Avoid duplicate title race
+  const titles: Record<string, string> = {
+    daily: `Daily Sprint — ${now.toISOString().slice(0, 10)}`,
+    weekly: `Weekly Marathon — ${now.toISOString().slice(0, 10)}`,
+    timed: `Timed Sprint — ${now.toISOString().slice(0, 10)}`,
+    streak: `Streak Keeper — ${now.toISOString().slice(0, 10)}`,
+  };
+  const descriptions: Record<string, string> = {
+    daily: "Complete 5 exercises today",
+    weekly: "Complete 25 exercises this week",
+    timed: "Complete 10 exercises before midnight",
+    streak: "Keep a 3-day streak",
+  };
+  const rules: Record<string, unknown> = {
+    daily: { metric: "exercises", count: 5 },
+    weekly: { metric: "exercises", count: 25 },
+    timed: { metric: "exercises", count: 10 },
+    streak: { metric: "streak", count: 3 },
+  };
+  const rewards: Record<string, number> = { daily: 30, weekly: 100, timed: 50, streak: 50 };
+  const title = titles[type]!;
+  const exists = await prisma.challenge.findFirst({ where: { title } as never });
+  if (exists) return { type, created: false, count: 0 };
+  await withRetry(() =>
+    prisma.challenge.create({
+      data: {
+        id: crypto.randomUUID(),
+        type,
+        title,
+        description: descriptions[type],
+        rule: rules[type] as never,
+        startAt,
+        endAt,
+        rewardXp: rewards[type],
+      } as never,
+    }),
+  );
+  return { type, created: true, count: 1 };
+}
+
+// Scheduler: rotate daily/weekly/timed/streak challenges; called by Vercel Cron route
+// Idempotent — safe to run via multiple cron schedules or manual POST.
+export async function schedulerTick(now = new Date()) {
+  const results: Record<string, unknown> = {};
+  // Daily is mandatory; weekly/timed/streak are opportunistic (if no active)
+  for (const type of ["daily", "weekly", "timed", "streak"] as const) {
+    try {
+      results[type] = await ensureChallengeType(type, new Date(now));
+    } catch (e) {
+      console.error(`[schedulerTick] ${type} failed`, e);
+      results[type] = { error: String(e) };
+    }
+  }
+  // Competitive challenges are manual/admin-only — do not auto-create
+  return { checkedAt: now.toISOString(), results };
 }

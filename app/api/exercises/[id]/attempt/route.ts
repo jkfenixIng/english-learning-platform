@@ -5,10 +5,26 @@ import { getPlugin } from "../../../../../lib/exercises/registry";
 import { computeXp } from "../../../../../lib/gamification/xp";
 import { shouldAutoCreate } from "../../../../../lib/srs/dal";
 import { invalidateLeaderboard } from "../../../../../lib/gamification/leaderboard";
+import { checkRateLimit, getClientKey, rateLimitHeaders } from "../../../../../lib/rate-limit";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const body = (await req.json()) as { answer: unknown; timeSpentMs?: number; userId?: string };
+  let body: { answer: unknown; timeSpentMs?: number; userId?: string };
+  try {
+    body = (await req.json()) as { answer: unknown; timeSpentMs?: number; userId?: string };
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  // Rate limiting — 30 attempts/min per IP+user (in-memory, 0 USD)
+  const rlKey = `attempt:${getClientKey(req, body.userId ?? null)}:${id}`;
+  const rlOpts = { limit: 30, windowMs: 60_000 };
+  const rl = checkRateLimit(rlKey, rlOpts);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests — slow down" },
+      { status: 429, headers: rateLimitHeaders(rl, rlOpts) },
+    );
+  }
   try {
     const exercise = await prisma.exercise.findUnique({ where: { id } });
     if (!exercise) return NextResponse.json({ error: "Exercise not found" }, { status: 404 });

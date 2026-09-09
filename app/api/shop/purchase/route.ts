@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "../../../../lib/supabase/server";
 import { purchaseItem } from "../../../../lib/gamification/shop";
 import { prisma } from "../../../../lib/db";
+import { checkRateLimit, getClientKey, rateLimitHeaders } from "../../../../lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   // Auth via Supabase — no fallback UUID, no body/header userId
@@ -18,6 +19,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized — please sign in" }, { status: 401 });
   }
   const userId = user.id;
+
+  // Rate limiting — 10 purchases/min per user (prevent XP drain abuse)
+  const rlOpts = { limit: 10, windowMs: 60_000 };
+  const rlKey = `shop:${getClientKey(req, userId)}`;
+  const rl = checkRateLimit(rlKey, rlOpts);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests — slow down" },
+      { status: 429, headers: rateLimitHeaders(rl, rlOpts) },
+    );
+  }
 
   // Parse JSON body — frontend now sends JSON; also handle form fallback gracefully
   let shopItemId: string | undefined;

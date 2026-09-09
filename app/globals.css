@@ -43,18 +43,23 @@
   color-scheme: light;
 }
 
+/* Design tokens — single source: see docs/AUDIT-FIXES.md §A9 (o docs/design-tokens.md si existe).
+   Light: background #fff / foreground #0f172a (15:1). Dark: #020617 / #f8fafc (15:1).
+   Primary indigo desaturated (oklch 0.55 0.12 285) — AA on white when used as bg with white text.
+*/
 .dark {
   color-scheme: dark;
   --color-background: #020617;
   --color-foreground: #f8fafc;
   --color-muted: #0f172a;
-  --color-muted-foreground: #94a3b8;
+  /* A11y: #cbd5e1 (slate-300) on #0f172a passes 10.5:1, improves small text legibility vs #94a3b8 (6.8:1 borderline for 11px) */
+  --color-muted-foreground: #cbd5e1;
   --color-card: #0f172a;
   --color-card-foreground: #f8fafc;
   --color-popover: #0f172a;
   --color-popover-foreground: #f8fafc;
-  --color-border: #1e293b;
-  --color-input: #1e293b;
+  --color-border: #334155;
+  --color-input: #334155;
   --color-ring: oklch(0.66 0.11 285);
 }
 

@@ -443,6 +443,20 @@
     "transcriptDiff": "Referencia vs tú",
     "score": "Puntaje"
   },
+  "onboarding": {
+    "stepLabel": "Paso {current} de {total}",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "done": "Entendido",
+    "skip": "Omitir — no mostrar de nuevo",
+    "step1Title": "Aprende por Niveles (A1 → C2)",
+    "step1Desc": "Explora 6 niveles MCER → unidades → lecciones. Modos enseñar, practicar, cuestionario y examen te guían paso a paso.",
+    "step2Title": "Repasos y SRS",
+    "step2Desc": "Las flashcards usan repetición espaciada SM-2. Las tarjetas vencidas aparecen en Repasos — califica 0–5, mantén tu racha y gana XP incluso sin conexión.",
+    "step3Title": "Desafíos y Tienda",
+    "step3Desc": "Únete a desafíos diarios/semanales, mantén tu racha y gasta XP en la Tienda. Los objetos premium están bloqueados — Stripe llegará pronto, sin cobro hoy."
+  },
   "dashboard": {
     "welcome": "¡Bienvenido de nuevo!",
     "subtitle": "Continúa tu viaje con el inglés",

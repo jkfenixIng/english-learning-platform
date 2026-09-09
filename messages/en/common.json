@@ -443,6 +443,20 @@
     "transcriptDiff": "Reference vs you",
     "score": "Score"
   },
+  "onboarding": {
+    "stepLabel": "Step {current} of {total}",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "done": "Got it",
+    "skip": "Skip — don't show again",
+    "step1Title": "Learn by Levels (A1 → C2)",
+    "step1Desc": "Explore 6 CEFR levels → units → lessons. Teach, practice, quiz and exam modes guide you step by step.",
+    "step2Title": "Reviews & SRS",
+    "step2Desc": "Flashcards use SM-2 spaced repetition. Due cards appear in Reviews — rate 0–5, keep your streak, earn XP even offline.",
+    "step3Title": "Challenges & Shop",
+    "step3Desc": "Join daily/weekly challenges, keep your streak and spend XP in the Shop. Premium items are locked — Stripe is coming soon, no charge today."
+  },
   "dashboard": {
     "welcome": "Welcome back!",
     "subtitle": "Continue your English journey",
