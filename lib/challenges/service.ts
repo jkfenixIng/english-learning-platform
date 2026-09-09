@@ -71,8 +71,59 @@ export async function updateProgress(
   });
   if (!participant) throw new Error("Not enrolled");
   if (participant.completed) return participant;
+  // Validate temporal window — only advance progress inside active window
+  const now = new Date();
+  if (now < challenge.startAt || now > challenge.endAt) {
+    // Outside window we keep current progress but don't mark completed
+    const prog = progressForRule((challenge.rule as ChallengeRule) ?? { count: 5 }, stats);
+    // Don't complete if window closed before reaching target; just update current without awarding
+    if (now > challenge.endAt) return participant;
+    const completed = !!prog.completed;
+    // If still inside window allow update; if before start, don't advance (return)
+    if (now < challenge.startAt) return participant;
+    if (!completed) {
+      return prisma.challengeParticipant.update({
+        where: { id: participant.id },
+        data: { progress: prog as never } as never,
+      });
+    }
+  }
   const prog = progressForRule((challenge.rule as ChallengeRule) ?? { count: 5 }, stats);
   const completed = !!prog.completed;
+  // Transaction ensures idempotent reward — check completed again inside tx
+  if (completed && challenge.rewardXp > 0) {
+    return prisma.$transaction(async (tx) => {
+      const fresh = await tx.challengeParticipant.findUnique({ where: { id: participant.id } });
+      if (!fresh) throw new Error("Not enrolled");
+      if (fresh.completed) return fresh;
+      const updated = await tx.challengeParticipant.update({
+        where: { id: participant.id },
+        data: {
+          progress: prog as never,
+          completed: true,
+          completedAt: new Date(),
+        } as never,
+      });
+      await tx.userStreak
+        .upsert({
+          where: { userId },
+          update: { xp: { increment: challenge.rewardXp } },
+          create: { userId, xp: challenge.rewardXp, currentStreak: 1, longestStreak: 1 } as never,
+        })
+        .catch(() => {});
+      await tx.notification
+        .create({
+          data: {
+            id: crypto.randomUUID(),
+            userId,
+            type: "challenge_completed",
+            payload: { challengeId, rewardXp: challenge.rewardXp } as never,
+          } as never,
+        })
+        .catch(() => {});
+      return updated;
+    });
+  }
   const updated = await prisma.challengeParticipant.update({
     where: { id: participant.id },
     data: {
@@ -81,26 +132,27 @@ export async function updateProgress(
       completedAt: completed ? new Date() : null,
     } as never,
   });
-  if (completed && challenge.rewardXp > 0) {
-    await prisma.userStreak
-      .upsert({
-        where: { userId },
-        update: { xp: { increment: challenge.rewardXp } },
-        create: { userId, xp: challenge.rewardXp, currentStreak: 1, longestStreak: 1 } as never,
-      })
-      .catch(() => {});
-    await prisma.notification
-      .create({
-        data: {
-          id: crypto.randomUUID(),
-          userId,
-          type: "challenge_completed",
-          payload: { challengeId, rewardXp: challenge.rewardXp } as never,
-        } as never,
-      })
-      .catch(() => {});
-  }
   return updated;
+}
+
+export async function leaveChallenge(challengeId: string, userId: string) {
+  const participant = await prisma.challengeParticipant.findUnique({
+    where: { challengeId_userId: { challengeId, userId } as never },
+  });
+  if (!participant) {
+    const err = new Error("Not enrolled") as Error & { status?: number };
+    err.status = 404;
+    throw err;
+  }
+  if (participant.completed) {
+    const err = new Error("Challenge already completed — cannot leave") as Error & {
+      status?: number;
+    };
+    err.status = 409;
+    throw err;
+  }
+  await prisma.challengeParticipant.delete({ where: { id: participant.id } });
+  return { left: true };
 }
 
 export async function getActiveChallenges(now = new Date()) {
