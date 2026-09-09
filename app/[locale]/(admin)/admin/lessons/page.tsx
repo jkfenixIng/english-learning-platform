@@ -1,16 +1,33 @@
 import { prisma } from "../../../../../lib/db";
+import { LessonsAdminClient } from "../../../../../components/admin/LessonsAdminClient";
+
 export default async function AdminLessonsPage() {
-  let lessons: { id: string; title: string; orderIndex: number }[] = [];
-  try { lessons = await prisma.lesson.findMany({ orderBy: { orderIndex: "asc" }, take: 20 }); } catch { lessons = []; }
-  return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">Lessons — CRUD (stub)</h1>
-      <p className="text-sm text-gray-600">Table + create/edit stub; validates via <code>lessonSchema</code>; admin-only.</p>
-      <table className="w-full text-sm" aria-label="Lessons table">
-        <thead><tr className="border-b text-left"><th>Title</th><th>Order</th></tr></thead>
-        <tbody>{lessons.map((l)=>(<tr key={l.id} className="border-b"><td className="py-2">{l.title}</td><td>{l.orderIndex}</td></tr>))}{lessons.length===0?<tr><td colSpan={2} className="py-4 text-center text-gray-500">No lessons — UI proof.</td></tr>:null}</tbody>
-      </table>
-      <form className="rounded border p-4 dark:border-gray-700" aria-label="Create lesson form"><h2 className="font-semibold">Create Lesson</h2><input name="title" placeholder="Lesson title" className="mt-2 w-full rounded border px-2 py-1" /><button type="submit" className="mt-2 rounded bg-primary px-4 py-2 text-sm text-white">Create (stub)</button></form>
-    </div>
-  );
+  let lessons: {
+    id: string;
+    title: string;
+    orderIndex: number;
+    kind: string;
+    coverImage: string | null;
+    unit: { title: string; level: { code: string } | null } | null;
+  }[] = [];
+  try {
+    const rows = await prisma.lesson.findMany({
+      orderBy: { orderIndex: "asc" },
+      take: 20,
+      include: { unit: { include: { level: true } } },
+    });
+    lessons = rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      orderIndex: r.orderIndex,
+      kind: (r as unknown as { kind: string }).kind ?? "teach",
+      coverImage: (r as unknown as { coverImage: string | null }).coverImage ?? null,
+      unit: r.unit
+        ? { title: r.unit.title, level: r.unit.level ? { code: r.unit.level.code } : null }
+        : null,
+    }));
+  } catch {
+    lessons = [];
+  }
+  return <LessonsAdminClient initialLessons={lessons as never} />;
 }

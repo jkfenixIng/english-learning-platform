@@ -30,7 +30,16 @@ export type LessonContentBlock =
       translation?: string;
     }
   | { type: "list"; items: string[]; itemsEs?: string[]; ordered?: boolean }
-  | { type: "callout"; text: string; textEs?: string; variant?: "info" | "tip" | "warning" };
+  | { type: "callout"; text: string; textEs?: string; variant?: "info" | "tip" | "warning" }
+  | {
+      type: "video";
+      url: string;
+      title?: string;
+      titleEs?: string;
+      caption?: string;
+      captionEs?: string;
+      provider?: "youtube" | "vimeo" | "other";
+    };
 
 export interface LessonContent {
   blocks: LessonContentBlock[];

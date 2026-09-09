@@ -6,11 +6,16 @@ import { exerciseAdminSchema } from "../../../../lib/validation/admin";
 export async function GET(req: NextRequest) {
   if (!(await isCurrentUserAdmin()))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  const lessonId = req.nextUrl.searchParams.get("lessonId");
-  const where = lessonId ? { lessonId } : {};
+  const sp = req.nextUrl.searchParams;
+  const lessonId = sp.get("lessonId");
+  const type = sp.get("type");
+  const take = Math.min(100, Math.max(1, parseInt(sp.get("take") ?? "50", 10)));
+  const where: Record<string, unknown> = {};
+  if (lessonId) where.lessonId = lessonId;
+  if (type) where.type = type;
   const exercises = await prisma.exercise.findMany({
-    where,
-    take: 50,
+    where: where as never,
+    take,
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(exercises);

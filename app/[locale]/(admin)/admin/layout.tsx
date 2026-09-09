@@ -43,6 +43,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Overview
             </Link>
             <Link href="/admin/levels">Levels</Link>
+            <Link href="/admin/units">Units</Link>
+            <Link href="/admin/lessons">Lessons</Link>
             <Link href="/admin/exercises">Exercises</Link>
             <Link href="/admin/challenges">Challenges</Link>
             <Link href="/admin/badges">Badges</Link>

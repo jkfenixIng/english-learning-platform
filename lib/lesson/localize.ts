@@ -325,6 +325,14 @@ export function localizeBlock(block: LessonContentBlock, locale: string): Lesson
       if (itemsEs && itemsEs.length === lb.items.length) return { ...lb, items: itemsEs };
       return block;
     }
+    case "video": {
+      const vb = block as Extract<LessonContentBlock, { type: "video" }>;
+      const ext = vb as unknown as { titleEs?: string; captionEs?: string };
+      const out: LessonContentBlock = { ...vb };
+      if (ext.titleEs) (out as unknown as Record<string, unknown>).title = ext.titleEs;
+      if (ext.captionEs) (out as unknown as Record<string, unknown>).caption = ext.captionEs;
+      return out;
+    }
     default:
       return block;
   }

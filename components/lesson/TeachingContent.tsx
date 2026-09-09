@@ -121,9 +121,64 @@ function BlockRenderer({ block, locale }: { block: LessonContentBlock; locale: s
         <div className={cn("rounded-xl border-l-4 p-4 text-sm", variantClasses)}>{cb.text}</div>
       );
     }
+    case "video": {
+      const vb = b as Extract<LessonContentBlock, { type: "video" }>;
+      const embed = toEmbedUrl(vb.url);
+      const title = (vb as unknown as { title?: string }).title ?? "Lesson video";
+      const caption = (vb as unknown as { caption?: string }).caption;
+      if (!embed) {
+        return (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900/40 dark:bg-amber-950/20">
+            <p className="text-amber-800 dark:text-amber-200">Invalid video URL: {vb.url}</p>
+          </div>
+        );
+      }
+      return (
+        <figure className="overflow-hidden rounded-xl border bg-black shadow-sm dark:border-slate-800">
+          <div className="relative aspect-video w-full">
+            <iframe
+              src={embed}
+              title={title}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              loading="lazy"
+            />
+          </div>
+          {caption ? (
+            <figcaption className="bg-white px-3 py-2 text-xs text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+              {caption}
+            </figcaption>
+          ) : null}
+        </figure>
+      );
+    }
     default:
       return null;
   }
+}
+
+function toEmbedUrl(raw: string): string | null {
+  const url = raw.trim();
+  if (!url) return null;
+  // Already embed form
+  if (url.includes("youtube.com/embed/") || url.includes("player.vimeo.com/video/")) return url;
+  // youtube watch?v= , youtu.be/
+  const ytWatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+  if (ytWatch) return `https://www.youtube.com/embed/${ytWatch[1]}`;
+  // youtube.com/shorts/
+  const ytShort = url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/);
+  if (ytShort) return `https://www.youtube.com/embed/${ytShort[1]}`;
+  // vimeo vimeo.com/123456
+  const vimeo = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  // If http(s) and looks like embed already or generic iframe src, allow it? Only allow https
+  try {
+    const u = new URL(url);
+    if ((u.protocol === "https:" && u.hostname.includes("youtube")) || u.hostname.includes("vimeo"))
+      return url;
+  } catch {}
+  return null;
 }
 
 export function TeachingContent({
