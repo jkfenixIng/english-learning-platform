@@ -20,6 +20,16 @@ export interface EvaluationResult {
   correct?: boolean;
 }
 
+export interface ExerciseImageAsset {
+  url: string;
+  alt: string;
+  caption?: string;
+}
+
+export interface ExerciseAssets {
+  images?: ExerciseImageAsset[];
+}
+
 export interface ExercisePlugin<TPrompt = unknown, TAnswer = unknown> {
   type: ExerciseType;
   promptSchema: import("zod").ZodType<TPrompt>;

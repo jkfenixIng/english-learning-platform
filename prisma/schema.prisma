@@ -50,6 +50,13 @@ enum ChallengeType {
   competitive
 }
 
+enum LessonKind {
+  teach
+  practice
+  quiz
+  exam
+}
+
 model User {
   id               String   @id @db.Uuid
   email            String   @unique
@@ -138,6 +145,15 @@ model Lesson {
   objectives       String
   orderIndex       Int        @map("order_index")
   estimatedMinutes Int        @default(10) @map("estimated_minutes")
+  // Preferred kind — controls teaching vs evaluation rendering
+  kind             LessonKind @default(teach)
+  // Rich teaching content for kind=teach/practice (blocks JSON)
+  content          Json?      @map("content")
+  // Optional markdown fallback / companion for content
+  bodyMarkdown     String?    @map("body_markdown")
+  // Cover image URL (remote or /lesson-images/...)
+  coverImage       String?    @map("cover_image")
+  // Deprecated compat — prefer `kind`; kept so old seed/db still works
   isQuiz           Boolean    @default(false) @map("is_quiz")
   isExam           Boolean    @default(false) @map("is_exam")
   exercises        Exercise[]

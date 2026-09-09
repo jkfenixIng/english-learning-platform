@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { WebSpeechAdapter } from "../../../speech/web-speech-adapter";
 import { speakText } from "../../../speech/tts";
 import type { ShadowingPrompt, ShadowingAnswer } from "./schema";
@@ -8,7 +9,14 @@ import { scorePronunciation, getPronunciationFeedback } from "../../../speech/sc
 
 const SPEEDS: Record<string, number> = { slow: 0.85, normal: 1, fast: 1.15 };
 
-export function ShadowingRenderer({ prompt, onSubmit }: { prompt: ShadowingPrompt; onSubmit: (a: ShadowingAnswer) => void }) {
+export function ShadowingRenderer({
+  prompt,
+  onSubmit,
+}: {
+  prompt: ShadowingPrompt;
+  onSubmit: (a: ShadowingAnswer) => void;
+}) {
+  const t = useTranslations("exercise");
   const adapter = new WebSpeechAdapter();
   const supported = adapter.isSupported();
   const [transcript, setTranscript] = useState("");
@@ -31,40 +39,75 @@ export function ShadowingRenderer({ prompt, onSubmit }: { prompt: ShadowingPromp
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-600">Listen, then shadow (repeat immediately with timing):</p>
+      <p className="text-sm text-gray-600">{t("listenShadow")}</p>
       <p className="rounded bg-indigo-50 p-3 font-medium dark:bg-indigo-950">{prompt.reference}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <button onClick={play} className="rounded bg-primary px-4 py-2 text-white" aria-label="Play reference audio">▶ Play</button>
-        <label className="flex items-center gap-1 text-xs" aria-label="Playback speed">
-          Speed
-          <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded border px-2 py-1 dark:bg-gray-800">
-            <option value={SPEEDS.slow}>Slow 0.85×</option>
-            <option value={SPEEDS.normal}>Normal 1×</option>
-            <option value={SPEEDS.fast}>Fast 1.15×</option>
+        <button
+          onClick={play}
+          className="bg-primary rounded px-4 py-2 text-white"
+          aria-label={t("play")}
+        >
+          {t("play")}
+        </button>
+        <label className="flex items-center gap-1 text-xs" aria-label={t("speed")}>
+          {t("speed")}
+          <select
+            value={speed}
+            onChange={(e) => setSpeed(Number(e.target.value))}
+            className="rounded border px-2 py-1 dark:bg-gray-800"
+          >
+            <option value={SPEEDS.slow}>{t("slow")}</option>
+            <option value={SPEEDS.normal}>{t("normal")}</option>
+            <option value={SPEEDS.fast}>{t("fast")}</option>
           </select>
         </label>
         {supported ? (
-          <button onClick={record} disabled={recording} className="rounded bg-red-600 px-4 py-2 text-white disabled:opacity-50" aria-label={recording ? "Listening" : "Record shadowing"}>
-            {recording ? "Listening..." : "● Shadow"}
+          <button
+            onClick={record}
+            disabled={recording}
+            className="rounded bg-red-600 px-4 py-2 text-white disabled:opacity-50"
+            aria-label={recording ? t("listening") : t("shadow")}
+          >
+            {recording ? t("listening") : t("shadow")}
           </button>
         ) : (
-          <span className="text-xs text-amber-600">Type fallback — microphone not supported</span>
+          <span className="text-xs text-amber-600">{t("typeFallbackMic")}</span>
         )}
         {transcript ? (
-          <button onClick={() => setTranscript("")} className="rounded border px-3 py-2 text-xs" aria-label="Retry shadowing">↺ Retry</button>
+          <button
+            onClick={() => setTranscript("")}
+            className="rounded border px-3 py-2 text-xs"
+            aria-label={t("retryAction")}
+          >
+            {t("retryAction")}
+          </button>
         ) : null}
       </div>
       {transcript ? (
         <>
-          <p className="rounded bg-green-50 p-2 text-sm dark:bg-green-950">Heard: {transcript}</p>
+          <p className="rounded bg-green-50 p-2 text-sm dark:bg-green-950">
+            {t("heard", { transcript })}
+          </p>
           <TranscriptDiff reference={prompt.reference} transcript={transcript} />
           {score ? (
-            <p className="text-xs text-gray-500" aria-live="polite">Score {score.overall}/100 · WER {(score.wer * 100).toFixed(0)}%</p>
+            <p className="text-xs text-gray-500" aria-live="polite">
+              {t("scoreWer", { score: score.overall, wer: (score.wer * 100).toFixed(0) })}
+            </p>
           ) : null}
-          {feedback ? <p className="rounded bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">{feedback}</p> : null}
+          {feedback ? (
+            <p className="rounded bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+              {feedback}
+            </p>
+          ) : null}
         </>
       ) : null}
-      <button onClick={() => onSubmit({ transcript })} className="rounded bg-primary px-4 py-2 text-white" aria-label="Submit shadowing">Submit</button>
+      <button
+        onClick={() => onSubmit({ transcript })}
+        className="bg-primary rounded px-4 py-2 text-white"
+        aria-label={t("submit")}
+      >
+        {t("submit")}
+      </button>
     </div>
   );
 }

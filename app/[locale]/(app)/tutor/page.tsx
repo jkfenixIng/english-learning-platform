@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function TutorPage() {
+  const t = useTranslations("tutor");
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,17 +22,15 @@ export default function TutorPage() {
       const data = (await res.json()) as { reply: string };
       setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
     } catch {
-      setMessages((m) => [...m, { role: "assistant", content: "Tutor unavailable" }]);
+      setMessages((m) => [...m, { role: "assistant", content: t("unavailable") }]);
     }
     setLoading(false);
   };
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-xl font-bold">AI Tutor</h1>
+      <h1 className="text-xl font-bold">{t("title")}</h1>
       <div className="h-96 space-y-2 overflow-auto rounded border bg-white p-4 dark:bg-gray-900">
-        {messages.length === 0 ? (
-          <p className="text-sm text-gray-500">Ask me anything — e.g., explain past perfect</p>
-        ) : null}
+        {messages.length === 0 ? <p className="text-sm text-gray-500">{t("emptyState")}</p> : null}
         {messages.map((m, i) => (
           <div
             key={i}
@@ -39,18 +39,18 @@ export default function TutorPage() {
             {m.content}
           </div>
         ))}
-        {loading ? <p className="text-xs text-gray-400">Thinking...</p> : null}
+        {loading ? <p className="text-xs text-gray-400">{t("thinking")}</p> : null}
       </div>
       <div className="flex gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder="Ask the tutor..."
+          placeholder={t("placeholder")}
           className="flex-1 rounded border px-3 py-2"
         />
         <button onClick={send} className="bg-primary rounded px-4 py-2 text-white hover:opacity-90">
-          Send
+          {t("send")}
         </button>
       </div>
     </div>

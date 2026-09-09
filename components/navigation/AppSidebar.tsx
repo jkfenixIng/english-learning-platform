@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils/cn";
 
 type NavItem = {
@@ -165,49 +166,6 @@ function IconAdmin(props: { className?: string }) {
 
 const ICON = "h-[18px] w-[18px] shrink-0";
 
-const sections: NavSection[] = [
-  {
-    title: "Learn",
-    items: [
-      {
-        href: "/dashboard",
-        label: "Dashboard",
-        icon: <IconDashboard className={ICON} />,
-        match: "/dashboard",
-      },
-      {
-        href: "/levels/A1",
-        label: "Levels",
-        icon: <IconLevels className={ICON} />,
-        match: "/levels",
-      },
-      { href: "/tutor", label: "AI Tutor", icon: <IconTutor className={ICON} />, badge: "AI" },
-    ],
-  },
-  {
-    title: "Progress",
-    items: [
-      { href: "/reviews", label: "Reviews", icon: <IconReviews className={ICON} /> },
-      { href: "/challenges", label: "Challenges", icon: <IconChallenges className={ICON} /> },
-    ],
-  },
-  {
-    title: "Social",
-    items: [
-      { href: "/leaderboard", label: "Leaderboard", icon: <IconLeaderboard className={ICON} /> },
-      { href: "/shop", label: "Shop", icon: <IconShop className={ICON} /> },
-    ],
-  },
-  {
-    title: "System",
-    items: [{ href: "/settings", label: "Settings", icon: <IconSettings className={ICON} /> }],
-  },
-  {
-    title: "Admin",
-    items: [{ href: "/admin", label: "Admin", icon: <IconAdmin className={ICON} /> }],
-  },
-];
-
 function normalizePath(pathname: string) {
   // localePrefix as-needed => strip /en or /es prefix if present
   const m = pathname.match(/^\/(en|es)(\/|$)/);
@@ -227,45 +185,121 @@ function isActive(pathname: string, item: NavItem) {
   return false;
 }
 
-export function AppSidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
+export function AppSidebar({
+  mobileOpen,
+  onClose,
+  collapsed = false,
+}: {
+  mobileOpen: boolean;
+  onClose: () => void;
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
+  const tNav = useTranslations("nav");
+  const tSidebar = useTranslations("appSidebar");
+
+  const sections: NavSection[] = [
+    {
+      title: tNav("sections.learn"),
+      items: [
+        {
+          href: "/dashboard",
+          label: tNav("dashboard"),
+          icon: <IconDashboard className={ICON} />,
+          match: "/dashboard",
+        },
+        {
+          href: "/levels/A1",
+          label: tNav("levels"),
+          icon: <IconLevels className={ICON} />,
+          match: "/levels",
+        },
+        {
+          href: "/tutor",
+          label: tNav("aiTutor"),
+          icon: <IconTutor className={ICON} />,
+          badge: tNav("aiBadge"),
+        },
+      ],
+    },
+    {
+      title: tNav("sections.progress"),
+      items: [
+        { href: "/reviews", label: tNav("reviews"), icon: <IconReviews className={ICON} /> },
+        {
+          href: "/challenges",
+          label: tNav("challenges"),
+          icon: <IconChallenges className={ICON} />,
+        },
+      ],
+    },
+    {
+      title: tNav("sections.social"),
+      items: [
+        {
+          href: "/leaderboard",
+          label: tNav("leaderboard"),
+          icon: <IconLeaderboard className={ICON} />,
+        },
+        { href: "/shop", label: tNav("shop"), icon: <IconShop className={ICON} /> },
+      ],
+    },
+    {
+      title: tNav("sections.system"),
+      items: [
+        { href: "/settings", label: tNav("settings"), icon: <IconSettings className={ICON} /> },
+      ],
+    },
+    {
+      title: tNav("sections.admin"),
+      items: [{ href: "/admin", label: tNav("admin"), icon: <IconAdmin className={ICON} /> }],
+    },
+  ];
 
   return (
     <>
-      {/* Backdrop mobile */}
+      {/* Backdrop mobile only */}
       <div
         aria-hidden={!mobileOpen}
         onClick={onClose}
         className={cn(
-          "fixed inset-0 z-30 bg-slate-900/25 backdrop-blur-[1px] transition-opacity duration-200 lg:hidden",
+          "fixed inset-0 z-30 bg-slate-900/25 backdrop-blur-[1px] transition-opacity duration-200 motion-reduce:transition-none lg:hidden",
           mobileOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
 
       <aside
         aria-label="Primary"
+        data-collapsed={collapsed ? "true" : "false"}
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[272px] flex-col border-r bg-white transition-transform duration-200 ease-out dark:border-slate-800 dark:bg-slate-900",
+          "fixed inset-y-0 left-0 z-40 flex flex-col border-r bg-white motion-reduce:transition-none dark:border-slate-800 dark:bg-slate-900",
+          "transition-all duration-200 ease-out",
+          collapsed ? "w-[272px] lg:w-[72px]" : "w-[272px]",
           "lg:translate-x-0",
           mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:shadow-none",
         )}
       >
         {/* Brand header */}
-        <div className="flex h-[64px] shrink-0 items-center gap-3 border-b px-5 dark:border-slate-800">
-          <div className="bg-primary text-primary-foreground flex h-9 w-9 items-center justify-center rounded-xl text-[13px] font-extrabold tracking-tight shadow-sm">
+        <div
+          className={cn(
+            "flex h-[64px] shrink-0 items-center gap-3 border-b px-5 dark:border-slate-800",
+            collapsed && "lg:justify-center lg:px-2",
+          )}
+        >
+          <div className="bg-primary text-primary-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[13px] font-extrabold tracking-tight shadow-sm">
             EL
           </div>
-          <div className="min-w-0 flex-1">
+          <div className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>
             <div className="text-[13.5px] leading-none font-semibold tracking-tight text-slate-900 dark:text-white">
-              English
+              {tSidebar("brandTitle")}
             </div>
             <div className="text-[11px] font-medium tracking-widest text-slate-500 dark:text-slate-400">
-              LEARNING PLATFORM
+              {tSidebar("brandSubtitle")}
             </div>
           </div>
           <button
             onClick={onClose}
-            aria-label="Close navigation"
+            aria-label={tSidebar("closeNav")}
             className="hover:bg-muted inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-slate-500 transition hover:text-slate-900 lg:hidden dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
           >
             <span aria-hidden className="text-[18px] leading-none">
@@ -273,7 +307,10 @@ export function AppSidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClo
             </span>
           </button>
           <span
-            className="hidden h-2 w-2 rounded-full bg-emerald-500/90 ring-4 ring-emerald-500/10 lg:inline-flex"
+            className={cn(
+              "hidden h-2 w-2 rounded-full bg-emerald-500/90 ring-4 ring-emerald-500/10 lg:inline-flex",
+              collapsed && "lg:hidden",
+            )}
             aria-hidden
           />
         </div>
@@ -284,9 +321,20 @@ export function AppSidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClo
             {sections.map((section, idx) => (
               <div key={section.title}>
                 {idx !== 0 && (
-                  <div className="mb-6 border-t border-dashed dark:border-slate-800" aria-hidden />
+                  <div
+                    className={cn(
+                      "mb-6 border-t border-dashed dark:border-slate-800",
+                      collapsed && "lg:mx-2",
+                    )}
+                    aria-hidden
+                  />
                 )}
-                <div className="mb-2 px-3 text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase dark:text-slate-500">
+                <div
+                  className={cn(
+                    "mb-2 px-3 text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase dark:text-slate-500",
+                    collapsed && "lg:hidden",
+                  )}
+                >
                   {section.title}
                 </div>
                 <ul className="space-y-1">
@@ -298,9 +346,12 @@ export function AppSidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClo
                           href={item.href}
                           onClick={onClose}
                           aria-current={active ? "page" : undefined}
+                          aria-label={item.label}
+                          title={item.label}
                           className={cn(
-                            "group flex items-center gap-3 rounded-xl px-3 py-[9px] text-[13.5px] leading-none font-medium transition-all duration-150",
+                            "group flex items-center gap-3 rounded-xl px-3 py-[9px] text-[13.5px] leading-none font-medium transition-all duration-150 motion-reduce:transition-none",
                             "border border-transparent",
+                            collapsed && "lg:justify-center lg:px-2",
                             active
                               ? "border-primary-200/60 bg-primary-50 text-primary-800 dark:border-primary-800/40 dark:bg-primary-950/40 dark:text-primary-200 shadow-[0_1px_0_0_rgba(0,0,0,0.02)]"
                               : "hover:bg-muted text-slate-600 hover:border-slate-200 hover:text-slate-900 dark:text-slate-300 dark:hover:border-slate-800 dark:hover:bg-slate-800/60 dark:hover:text-white",
@@ -308,7 +359,7 @@ export function AppSidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClo
                         >
                           <span
                             className={cn(
-                              "flex h-7 w-7 items-center justify-center rounded-lg border transition-colors",
+                              "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition-colors motion-reduce:transition-none",
                               active
                                 ? "border-primary-200 text-primary-600 dark:border-primary-800 dark:text-primary-300 bg-white dark:bg-slate-900"
                                 : "border-slate-200 bg-white text-slate-500 group-hover:border-slate-200 group-hover:text-slate-700 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400",
@@ -316,11 +367,14 @@ export function AppSidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClo
                           >
                             {item.icon}
                           </span>
-                          <span className="flex-1 truncate">{item.label}</span>
+                          <span className={cn("flex-1 truncate", collapsed && "lg:hidden")}>
+                            {item.label}
+                          </span>
                           {item.badge && (
                             <span
                               className={cn(
                                 "rounded-full px-2 py-0.5 text-[10px] font-bold tracking-widest",
+                                collapsed && "lg:hidden",
                                 active
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-slate-900 text-white dark:bg-white dark:text-slate-900",
@@ -331,7 +385,10 @@ export function AppSidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClo
                           )}
                           {active && (
                             <span
-                              className="bg-primary dark:bg-primary-300 ml-auto h-1.5 w-1.5 rounded-full"
+                              className={cn(
+                                "bg-primary dark:bg-primary-300 ml-auto h-1.5 w-1.5 rounded-full",
+                                collapsed && "lg:hidden",
+                              )}
                               aria-hidden
                             />
                           )}
@@ -344,38 +401,51 @@ export function AppSidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClo
             ))}
           </nav>
 
-          {/* subtle footer card — progress hint */}
-          <div className="from-primary-50 mt-8 rounded-2xl border bg-gradient-to-br to-white p-4 dark:border-slate-800 dark:from-slate-800/60 dark:to-slate-900">
+          {/* footer card — hidden when collapsed on desktop */}
+          <div
+            className={cn(
+              "from-primary-50 mt-8 rounded-2xl border bg-gradient-to-br to-white p-4 dark:border-slate-800 dark:from-slate-800/60 dark:to-slate-900",
+              collapsed && "lg:hidden",
+            )}
+          >
             <div className="text-[12px] font-semibold text-slate-900 dark:text-white">
-              Keep going
+              {tSidebar("keepGoingTitle")}
             </div>
             <div className="mt-1 text-[12px] leading-5 text-slate-500 dark:text-slate-400">
-              Practice a bit daily. Your streak loves consistency.
+              {tSidebar("keepGoingDesc")}
             </div>
             <Link
               href="/reviews"
               onClick={onClose}
               className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
             >
-              Review now <span aria-hidden>→</span>
+              {tSidebar("reviewNow")} <span aria-hidden>→</span>
             </Link>
           </div>
         </div>
 
         <div className="border-t p-3 dark:border-slate-800">
-          <div className="bg-muted flex items-center gap-3 rounded-xl px-3 py-2.5 dark:bg-slate-800/60">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700">
+          <div
+            className={cn(
+              "bg-muted flex items-center gap-3 rounded-xl px-3 py-2.5 dark:bg-slate-800/60",
+              collapsed && "lg:justify-center lg:px-2 lg:py-2.5",
+            )}
+          >
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700">
               E
             </div>
-            <div className="min-w-0 flex-1">
+            <div className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>
               <div className="truncate text-xs font-semibold text-slate-900 dark:text-white">
-                Learner
+                {tSidebar("learnerRole")}
               </div>
               <div className="truncate text-[11px] text-slate-500 dark:text-slate-400">
-                Level A1 · 3-day streak
+                {tSidebar("learnerMeta")}
               </div>
             </div>
-            <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
+            <span
+              className={cn("h-2 w-2 rounded-full bg-emerald-500", collapsed && "lg:hidden")}
+              aria-hidden
+            />
           </div>
         </div>
       </aside>

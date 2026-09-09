@@ -16,6 +16,7 @@ interface PreferencesState {
   srsEnabled: boolean;
   challengesEnabled: boolean;
   emailNotifications: boolean;
+  sidebarCollapsed: boolean;
   setNavigationMode: (mode: NavigationMode) => void;
   setProgressionMode: (mode: ProgressionMode) => void;
   setLocale: (locale: Locale) => void;
@@ -23,6 +24,7 @@ interface PreferencesState {
   setSrsEnabled: (v: boolean) => void;
   setChallengesEnabled: (v: boolean) => void;
   setEmailNotifications: (v: boolean) => void;
+  setSidebarCollapsed: (v: boolean) => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>()(
@@ -35,6 +37,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       srsEnabled: true,
       challengesEnabled: true,
       emailNotifications: false,
+      sidebarCollapsed: false,
       setNavigationMode: (navigationMode) => set({ navigationMode }),
       setProgressionMode: (progressionMode) => set({ progressionMode }),
       setLocale: (locale) => set({ locale }),
@@ -42,6 +45,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       setSrsEnabled: (srsEnabled) => set({ srsEnabled }),
       setChallengesEnabled: (challengesEnabled) => set({ challengesEnabled }),
       setEmailNotifications: (emailNotifications) => set({ emailNotifications }),
+      setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
     }),
     { name: "elp-preferences" },
   ),

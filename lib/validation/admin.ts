@@ -22,19 +22,49 @@ export const lessonSchema = z.object({
   estimatedMinutes: z.coerce.number().int().min(1).max(180),
   isQuiz: z.coerce.boolean().optional(),
   isExam: z.coerce.boolean().optional(),
+  kind: z.enum(["teach", "practice", "quiz", "exam"]).optional(),
+  coverImage: z.string().url().optional().or(z.literal("")),
+  bodyMarkdown: z.string().max(20000).optional(),
+  content: z.any().optional(),
+});
+
+const exerciseImageAssetSchema = z.object({
+  url: z.string().min(1),
+  alt: z.string().min(1),
+  caption: z.string().optional(),
 });
 
 export const exerciseAdminSchema = z.object({
   lessonId: z.string().uuid(),
-  type: z.enum(["fill_blanks","ordering","transformation","flashcard","matching","listening_tts","dictation","comprehension","graded_reading","writing_prompt","speaking_record","shadowing","pronunciation"]),
+  type: z.enum([
+    "fill_blanks",
+    "ordering",
+    "transformation",
+    "flashcard",
+    "matching",
+    "listening_tts",
+    "dictation",
+    "comprehension",
+    "graded_reading",
+    "writing_prompt",
+    "speaking_record",
+    "shadowing",
+    "pronunciation",
+  ]),
   difficulty: z.coerce.number().int().min(1).max(5),
   prompt: z.any(),
   solution: z.any(),
   aiGenerated: z.coerce.boolean().optional(),
+  assets: z
+    .object({
+      images: z.array(exerciseImageAssetSchema).optional(),
+    })
+    .optional()
+    .nullable(),
 });
 
 export const challengeAdminSchema = z.object({
-  type: z.enum(["daily","weekly","timed","streak","competitive"]),
+  type: z.enum(["daily", "weekly", "timed", "streak", "competitive"]),
   title: z.string().min(2).max(120),
   description: z.string().min(2).max(500),
   rewardXp: z.coerce.number().int().min(1).max(1000),
@@ -55,6 +85,6 @@ export const shopAdminSchema = z.object({
   description: z.string().min(2).max(200),
   priceXp: z.coerce.number().int().min(1).max(5000),
   cosmeticType: z.string().min(2).max(20),
-  rarity: z.enum(["common","rare","epic","legendary"]),
+  rarity: z.enum(["common", "rare", "epic", "legendary"]),
   isPremium: z.coerce.boolean().optional(),
 });

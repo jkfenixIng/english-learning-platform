@@ -104,10 +104,10 @@ export default function SettingsPage() {
         }),
       });
       const data = (await res.json()) as AiSettings & { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Save failed");
+      if (!res.ok) throw new Error(data.error ?? t("saveFailed"));
       setAi(data);
       setApiKeyInput("");
-      setAiMsg("Saved");
+      setAiMsg(t("saved"));
     } catch (e) {
       setAiMsg(String(e));
     } finally {
@@ -122,7 +122,7 @@ export default function SettingsPage() {
       setAi({ provider: "mock", model: null, enabled: false, hasKey: false });
       setModelInput("");
       setApiKeyInput("");
-      setAiMsg("Revoked");
+      setAiMsg(t("revoked"));
     } catch (e) {
       setAiMsg(String(e));
     } finally {
@@ -216,75 +216,72 @@ export default function SettingsPage() {
             />
           </label>
           <p className="text-xs text-gray-400">
-            Offline: {online ? "online" : "offline — reviews cached via IndexedDB"}
+            {t("offlinePrefix")} {online ? t("offlineOnline") : t("offlineOffline")}
           </p>
         </div>
       </div>
 
       <div className="rounded-xl border bg-white p-4 dark:bg-gray-900">
-        <h2 className="text-sm font-semibold">AI Tutor — Optional (BYOK)</h2>
-        <p className="mt-1 text-xs text-gray-500">
-          Bring your own key. Your API key is stored encrypted and never shown again. Leave empty to
-          use mock.
-        </p>
+        <h2 className="text-sm font-semibold">{t("aiTitle")}</h2>
+        <p className="mt-1 text-xs text-gray-500">{t("aiDesc")}</p>
         {aiLoading ? (
-          <p className="mt-3 text-xs text-gray-400">Loading AI settings...</p>
+          <p className="mt-3 text-xs text-gray-400">{t("loadingAi")}</p>
         ) : (
           <div className="mt-4 space-y-3">
             <label className="flex items-center justify-between text-sm">
-              <span>Enabled</span>
+              <span>{t("enabled")}</span>
               <input
                 type="checkbox"
                 checked={ai.enabled}
                 onChange={(e) => setAi((s) => ({ ...s, enabled: e.target.checked }))}
-                aria-label="Enable AI Tutor"
+                aria-label={t("enableAiAria")}
               />
             </label>
 
             <div>
-              <label className="text-xs font-medium">Provider</label>
+              <label className="text-xs font-medium">{t("provider")}</label>
               <select
                 value={ai.provider}
                 onChange={(e) => setAi((s) => ({ ...s, provider: e.target.value }))}
                 className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
-                aria-label="AI provider"
+                aria-label={t("providerAria")}
               >
-                <option value="mock">mock (no key, demo)</option>
-                <option value="openrouter">openrouter</option>
-                <option value="groq">groq</option>
+                <option value="mock">{t("providerMock")}</option>
+                <option value="openrouter">{t("providerOpenrouter")}</option>
+                <option value="groq">{t("providerGroq")}</option>
               </select>
             </div>
 
             <div>
-              <label className="text-xs font-medium">API key</label>
+              <label className="text-xs font-medium">{t("apiKey")}</label>
               <input
                 type="password"
                 value={apiKeyInput}
                 onChange={(e) => setApiKeyInput(e.target.value)}
-                placeholder="sk-or-v1-... or gsk_..."
+                placeholder={t("apiKeyPlaceholder")}
                 className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
-                aria-label="API key"
+                aria-label={t("apiKeyAria")}
                 autoComplete="off"
               />
               <p className="mt-1 text-xs text-gray-500">
                 {ai.hasKey ? (
-                  <span className="text-emerald-600">● Key saved</span>
+                  <span className="text-emerald-600">{t("keySaved")}</span>
                 ) : (
-                  <span className="text-gray-400">No key saved</span>
+                  <span className="text-gray-400">{t("noKeySaved")}</span>
                 )}{" "}
-                — leave empty to keep existing.
+                {t("keepExisting")}
               </p>
             </div>
 
             <div>
-              <label className="text-xs font-medium">Model (optional)</label>
+              <label className="text-xs font-medium">{t("modelLabel")}</label>
               <input
                 type="text"
                 value={modelInput}
                 onChange={(e) => setModelInput(e.target.value)}
-                placeholder="meta-llama/llama-3.1-8b:free"
+                placeholder={t("modelPlaceholder")}
                 className="mt-1 w-full rounded border px-2 py-1.5 text-sm"
-                aria-label="Model"
+                aria-label={t("modelAria")}
               />
             </div>
 
@@ -293,17 +290,17 @@ export default function SettingsPage() {
                 onClick={saveAi}
                 disabled={aiSaving}
                 className="bg-primary rounded px-4 py-2 text-sm text-white hover:opacity-90 disabled:opacity-50"
-                aria-label="Save AI settings"
+                aria-label={t("saveAiAria")}
               >
-                {aiSaving ? "Saving..." : "Save"}
+                {aiSaving ? t("saving") : t("save")}
               </button>
               <button
                 onClick={revokeAi}
                 disabled={aiSaving}
                 className="rounded border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50 dark:hover:bg-gray-800"
-                aria-label="Revoke AI key"
+                aria-label={t("revokeAiAria")}
               >
-                Revoke
+                {t("revoke")}
               </button>
             </div>
             {aiMsg ? <p className="text-xs text-gray-500">{aiMsg}</p> : null}

@@ -1,11 +1,16 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { prisma } from "../../../../lib/db";
 
 export default async function ReviewsPage({
   searchParams,
+  params,
 }: {
   searchParams: Promise<{ unitId?: string }>;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "reviews" });
   const { unitId } = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
   let cards: { id: string; dueDate: Date; exercise: { type: string; prompt: unknown } }[] = [];
@@ -36,53 +41,51 @@ export default async function ReviewsPage({
   if (!srsEnabled)
     return (
       <div className="rounded-xl border bg-white p-6 dark:bg-gray-900">
-        <h1 className="font-bold">Reviews</h1>
-        <p className="mt-2 text-sm text-gray-500">
-          SRS disabled — enable in Settings to see daily reviews.
-        </p>
+        <h1 className="font-bold">{t("srsDisabledTitle")}</h1>
+        <p className="mt-2 text-sm text-gray-500">{t("srsDisabledDesc")}</p>
       </div>
     );
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">Daily Reviews</h1>
-      <p className="text-sm text-gray-500">
-        Due today ({today}): {cards.length} cards · Optional per preferences
-      </p>
+      <h1 className="text-xl font-bold">{t("dailyReviews")}</h1>
+      <p className="text-sm text-gray-500">{t("dueToday", { today, count: cards.length })}</p>
       {unitId && (
         <p className="text-xs">
-          Filtered by unit {unitId}{" "}
+          {t("filteredByUnit", { unitId })}{" "}
           <Link href="/reviews" className="text-indigo-600">
-            clear
+            {t("clear")}
           </Link>
         </p>
       )}
       <div className="grid gap-3">
         {cards.length === 0 ? (
           <p className="rounded-xl border bg-white p-4 text-sm text-gray-500 dark:bg-gray-900">
-            No cards due. Complete flashcard or vocab exercises to build your queue.
+            {t("noCards")}
           </p>
         ) : (
           cards.map((c) => (
             <div key={c.id} className="rounded-xl border bg-white p-4 dark:bg-gray-900">
               <p className="text-xs text-gray-500">
-                {c.exercise.type} · due {new Date(c.dueDate).toISOString().slice(0, 10)}
+                {c.exercise.type} ·{" "}
+                {t("due", { date: new Date(c.dueDate).toISOString().slice(0, 10) })}
               </p>
               <pre className="mt-2 max-w-full overflow-auto text-sm">
                 {JSON.stringify(c.exercise.prompt, null, 2).slice(0, 300)}
               </pre>
-              <ReviewActions cardId={c.id} />
+              <ReviewActions cardId={c.id} locale={locale} />
             </div>
           ))
         )}
       </div>
       <div className="rounded-xl border bg-indigo-50 p-3 text-xs dark:bg-indigo-950/30">
-        Manual topic review: add ?unitId=... to filter by unit.
+        {t("manualHint")}
       </div>
     </div>
   );
 }
 
-function ReviewActions({ cardId }: { cardId: string }) {
+async function ReviewActions({ cardId, locale }: { cardId: string; locale: string }) {
+  const t = await getTranslations({ locale, namespace: "reviews" });
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {[0, 2, 3, 4, 5].map((q) => (
@@ -93,7 +96,7 @@ function ReviewActions({ cardId }: { cardId: string }) {
           <input type="hidden" name="cardId" value={cardId} />
         </form>
       ))}
-      <span className="text-xs text-gray-400">Quality 0-5 (SM-2) — 3+ is pass, &lt;3 resets</span>
+      <span className="text-xs text-gray-400">{t("qualityHint")}</span>
     </div>
   );
 }

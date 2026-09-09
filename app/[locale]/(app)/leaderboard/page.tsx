@@ -1,11 +1,16 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { getLeaderboard } from "../../../../lib/gamification/leaderboard";
 
 export default async function LeaderboardPage({
   searchParams,
+  params,
 }: {
   searchParams: Promise<{ window?: string }>;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "leaderboardPage" });
   const { window: w } = await searchParams;
   const windowVal = w === "weekly" ? "weekly" : "all_time";
   let entries: { userId: string; name: string; xp: number; rank: number }[] = [];
@@ -14,36 +19,36 @@ export default async function LeaderboardPage({
   } catch {}
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">Leaderboard</h1>
+      <h1 className="text-xl font-bold">{t("title")}</h1>
       <div className="flex gap-2 text-sm">
         <Link
           href="/leaderboard?window=all_time"
           className={`rounded px-3 py-1 ${windowVal === "all_time" ? "bg-primary text-white" : "border"}`}
         >
-          All time
+          {t("allTime")}
         </Link>
         <Link
           href="/leaderboard?window=weekly"
           className={`rounded px-3 py-1 ${windowVal === "weekly" ? "bg-primary text-white" : "border"}`}
         >
-          Weekly
+          {t("weekly")}
         </Link>
-        <span className="self-center text-xs text-gray-400">cached 5 min</span>
+        <span className="self-center text-xs text-gray-400">{t("cached")}</span>
       </div>
       <div className="rounded-xl border bg-white dark:bg-gray-900">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-gray-500">
-              <th className="p-3">#</th>
-              <th>User</th>
-              <th className="p-3 text-right">XP</th>
+              <th className="p-3">{t("rank")}</th>
+              <th>{t("user")}</th>
+              <th className="p-3 text-right">{t("xp")}</th>
             </tr>
           </thead>
           <tbody>
             {entries.length === 0 ? (
               <tr>
                 <td colSpan={3} className="p-4 text-center text-gray-500">
-                  No data yet — complete exercises to rank!
+                  {t("empty")}
                 </td>
               </tr>
             ) : (

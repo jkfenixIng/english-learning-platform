@@ -2,19 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ThemeToggle } from "../ui/ThemeToggle";
-
-const TITLES: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/levels": "Levels",
-  "/reviews": "Reviews",
-  "/challenges": "Challenges",
-  "/leaderboard": "Leaderboard",
-  "/shop": "Shop",
-  "/tutor": "AI Tutor",
-  "/settings": "Settings",
-  "/admin": "Admin",
-};
 
 function normalize(pathname: string) {
   const m = pathname.match(/^\/(en|es)(\/|$)/);
@@ -25,29 +14,70 @@ function normalize(pathname: string) {
   return pathname || "/";
 }
 
-function titleFor(pathname: string) {
-  const norm = normalize(pathname);
-  // exact or prefix
-  for (const [key, label] of Object.entries(TITLES)) {
-    if (norm === key || norm.startsWith(key + "/")) return label;
-  }
-  // fallback: first segment
-  const seg = norm.split("/").filter(Boolean)[0];
-  if (!seg) return "Dashboard";
-  return seg.charAt(0).toUpperCase() + seg.slice(1);
+function IconCollapse({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      className="h-5 w-5"
+      aria-hidden
+    >
+      {collapsed ? (
+        <path d="M11 5l6 7-6 7M6 5l6 7-6 7" strokeLinecap="round" strokeLinejoin="round" />
+      ) : (
+        <path d="M13 5L7 12l6 7M18 5l-6 7 6 7" strokeLinecap="round" strokeLinejoin="round" />
+      )}
+    </svg>
+  );
 }
 
-export function AppHeader({ onMenuClick }: { onMenuClick: () => void }) {
+export function AppHeader({
+  onMenuClick,
+  onToggle,
+  collapsed = false,
+}: {
+  onMenuClick: () => void;
+  onToggle?: () => void;
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
+  const tHeader = useTranslations("appHeader");
+  const tTitles = useTranslations("appHeader.titles");
+
+  const TITLES: Record<string, string> = {
+    "/dashboard": tTitles("dashboard"),
+    "/levels": tTitles("levels"),
+    "/reviews": tTitles("reviews"),
+    "/challenges": tTitles("challenges"),
+    "/leaderboard": tTitles("leaderboard"),
+    "/shop": tTitles("shop"),
+    "/tutor": tTitles("tutor"),
+    "/settings": tTitles("settings"),
+    "/admin": tTitles("admin"),
+  };
+
+  function titleFor(path: string) {
+    const norm = normalize(path);
+    for (const [key, label] of Object.entries(TITLES)) {
+      if (norm === key || norm.startsWith(key + "/")) return label;
+    }
+    const seg = norm.split("/").filter(Boolean)[0];
+    if (!seg) return tTitles("fallback");
+    return seg.charAt(0).toUpperCase() + seg.slice(1);
+  }
+
   const title = titleFor(pathname);
 
   return (
     <header className="sticky top-0 z-20 flex h-[64px] items-center justify-between gap-3 border-b bg-white/80 px-4 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 lg:px-6 dark:border-slate-800 dark:bg-slate-900/70 dark:supports-[backdrop-filter]:bg-slate-900/60">
       <div className="flex min-w-0 items-center gap-3">
+        {/* Mobile hamburger */}
         <button
           onClick={onMenuClick}
-          aria-label="Open navigation"
-          className="hover:bg-muted inline-flex h-9 w-9 items-center justify-center rounded-xl border bg-white text-slate-700 shadow-sm transition lg:hidden dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+          aria-label={tHeader("openNav")}
+          className="hover:bg-muted inline-flex h-9 w-9 items-center justify-center rounded-xl border bg-white text-slate-700 shadow-sm transition motion-reduce:transition-none lg:hidden dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
         >
           <svg
             viewBox="0 0 24 24"
@@ -61,6 +91,19 @@ export function AppHeader({ onMenuClick }: { onMenuClick: () => void }) {
           </svg>
         </button>
 
+        {/* Desktop collapse toggle */}
+        {onToggle && (
+          <button
+            onClick={onToggle}
+            aria-label={collapsed ? tHeader("expandSidebar") : tHeader("collapseSidebar")}
+            aria-expanded={!collapsed}
+            title={collapsed ? tHeader("expandSidebar") : tHeader("collapseSidebar")}
+            className="hover:bg-muted hidden h-9 w-9 items-center justify-center rounded-xl border bg-white text-slate-600 shadow-sm transition motion-reduce:transition-none lg:inline-flex dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+          >
+            <IconCollapse collapsed={collapsed} />
+          </button>
+        )}
+
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="truncate text-[15px] font-semibold tracking-tight text-slate-900 dark:text-white">
@@ -71,7 +114,7 @@ export function AppHeader({ onMenuClick }: { onMenuClick: () => void }) {
             </span>
           </div>
           <p className="hidden truncate text-xs text-slate-500 sm:block dark:text-slate-400">
-            Learn English from A1 to C2 — at your own pace
+            {tHeader("tagline")}
           </p>
         </div>
       </div>
@@ -79,17 +122,17 @@ export function AppHeader({ onMenuClick }: { onMenuClick: () => void }) {
       <div className="flex shrink-0 items-center gap-2">
         <Link
           href="/tutor"
-          className="hover:bg-muted hidden items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition sm:inline-flex dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+          className="hover:bg-muted hidden items-center gap-1.5 rounded-full border bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition motion-reduce:transition-none sm:inline-flex dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
         >
           <span aria-hidden className="h-2 w-2 rounded-full bg-violet-500" />
-          Ask Tutor
+          {tHeader("askTutor")}
         </Link>
         <div className="hidden h-6 w-px bg-slate-200 sm:block dark:bg-slate-800" aria-hidden />
         <ThemeToggle />
         <Link
           href="/settings"
-          aria-label="Settings"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+          aria-label={tTitles("settings")}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm transition hover:bg-slate-800 motion-reduce:transition-none dark:bg-white dark:text-slate-900"
         >
           <span className="text-xs font-bold">E</span>
         </Link>
