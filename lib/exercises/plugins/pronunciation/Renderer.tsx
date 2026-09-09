@@ -56,6 +56,7 @@ export function PronunciationRenderer({
         </p>
       ) : null}
       <button
+          data-exercise-submit
         onClick={() => onSubmit({ transcript })}
         className="bg-primary w-full rounded px-4 py-2 text-white"
       >

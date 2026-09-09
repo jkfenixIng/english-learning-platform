@@ -82,7 +82,8 @@ export function MatchingRenderer({
       </div>
       <div className="flex gap-2">
         <button
-          onClick={() => onSubmit({ matches })}
+          data-exercise-submit
+        onClick={() => onSubmit({ matches })}
           className="bg-primary rounded px-4 py-2 text-white"
         >
           {t("submit")}

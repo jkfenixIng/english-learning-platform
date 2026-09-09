@@ -31,6 +31,7 @@ export function DictationRenderer({
         rows={3}
       />
       <button
+          data-exercise-submit
         onClick={() => onSubmit({ text })}
         className="bg-primary rounded px-4 py-2 text-white"
       >

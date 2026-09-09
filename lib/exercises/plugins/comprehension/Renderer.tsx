@@ -69,6 +69,7 @@ export function ComprehensionRenderer({
         ))}
       </div>
       <button
+          data-exercise-submit
         onClick={() => onSubmit({ answer })}
         className="bg-primary rounded px-4 py-2 text-white"
       >

@@ -41,7 +41,8 @@ export function OrderingRenderer({
           {t("clear")}
         </button>
         <button
-          onClick={() => onSubmit({ order: selected })}
+          data-exercise-submit
+        onClick={() => onSubmit({ order: selected })}
           className="bg-primary rounded px-4 py-2 text-sm text-white"
         >
           {t("submit")}

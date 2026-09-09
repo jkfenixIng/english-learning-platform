@@ -37,6 +37,7 @@ export function FillBlanksRenderer({
         })}
       </div>
       <button
+        data-exercise-submit
         onClick={() => onSubmit({ answers })}
         className="bg-primary hover:bg-primary/90 rounded px-4 py-2 text-white"
       >

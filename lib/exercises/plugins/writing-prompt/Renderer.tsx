@@ -28,7 +28,8 @@ export function WritingPromptRenderer({
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500">{t("words", { count: words })}</span>
         <button
-          onClick={() => onSubmit({ text })}
+          data-exercise-submit
+        onClick={() => onSubmit({ text })}
           className="bg-primary rounded px-4 py-2 text-white"
         >
           {t("submitCorrection")}

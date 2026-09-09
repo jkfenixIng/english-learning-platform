@@ -76,6 +76,7 @@ export function FlashcardRenderer({
       />
       <div className="flex gap-2">
         <button
+          data-exercise-submit
           onClick={() => onSubmit({ revealed: true, typed: typed || undefined })}
           className="bg-primary rounded px-4 py-2 text-white"
         >

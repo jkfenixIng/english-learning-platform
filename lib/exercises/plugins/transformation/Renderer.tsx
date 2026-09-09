@@ -20,6 +20,7 @@ export function TransformationRenderer({
       </p>
       <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("yourAnswer")} />
       <button
+          data-exercise-submit
         onClick={() => onSubmit({ text })}
         className="bg-primary rounded px-4 py-2 text-white"
       >

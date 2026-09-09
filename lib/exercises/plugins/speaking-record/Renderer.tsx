@@ -62,6 +62,7 @@ export function SpeakingRecordRenderer({
         className="focus-visible:ring-primary-500 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
       />
       <button
+          data-exercise-submit
         onClick={() => onSubmit({ transcript: transcript || typed, fallbackTyped: typed })}
         className="bg-primary rounded px-4 py-2 text-white"
       >

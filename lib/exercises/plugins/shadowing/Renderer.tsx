@@ -104,6 +104,7 @@ export function ShadowingRenderer({
         </>
       ) : null}
       <button
+          data-exercise-submit
         onClick={() => onSubmit({ transcript })}
         className="bg-primary rounded px-4 py-2 text-white"
         aria-label={t("submit")}

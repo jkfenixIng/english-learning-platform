@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "../../../../../lib/db";
 import ExerciseRunner from "./ExerciseRunner";
+import { ExerciseNav } from "../../../../../components/exercise/ExerciseNav";
+import { getLessonTitle } from "../../../../../lib/lesson/localize";
 import type { ExerciseAssets } from "../../../../../lib/exercises/types";
 
 function parseAssets(raw: unknown): ExerciseAssets | null {
@@ -26,6 +28,7 @@ export default async function ExercisePage({
     solution: unknown;
     lessonId: string;
     assets: unknown;
+    createdAt?: Date;
   } | null = null;
   try {
     exercise = await prisma.exercise.findUnique({ where: { id } });
@@ -34,14 +37,45 @@ export default async function ExercisePage({
 
   const assets = parseAssets(exercise.assets);
 
+  // Sibling exercises in same lesson (ordered by createdAt as lessons page does)
+  let siblingExercises: { id: string; type: string; createdAt: Date }[] = [];
+  let lessonTitle = "";
+  try {
+    const lesson = await prisma.lesson.findUnique({
+      where: { id: exercise.lessonId },
+      select: { title: true },
+    });
+    if (lesson) lessonTitle = (lesson as unknown as { title: string }).title;
+  } catch {}
+  try {
+    siblingExercises = (await prisma.exercise.findMany({
+      where: { lessonId: exercise.lessonId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, type: true, createdAt: true },
+    })) as unknown as typeof siblingExercises;
+  } catch {
+    try {
+      const rows = (await prisma.$queryRawUnsafe(
+        `SELECT id, type, "created_at" as "createdAt" FROM exercises WHERE "lesson_id" = $1 ORDER BY "created_at" ASC`,
+        exercise.lessonId,
+      )) as unknown as typeof siblingExercises;
+      siblingExercises = rows ?? [];
+    } catch {}
+  }
+  // Ensure current exercise is included even if fetch failed
+  if (siblingExercises.length === 0) {
+    siblingExercises = [{ id: exercise.id, type: exercise.type, createdAt: new Date() }];
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <Link
-        href={`/lessons/${exercise.lessonId}`}
-        className="text-xs text-indigo-600 hover:underline"
-      >
-        {t("backToLesson")}
-      </Link>
+      <ExerciseNav
+        locale={locale}
+        lessonId={exercise.lessonId}
+        lessonTitle={lessonTitle || exercise.lessonId}
+        currentExerciseId={exercise.id}
+        siblings={siblingExercises}
+      />
       <p className="text-xs tracking-wide text-gray-500 uppercase">
         {exercise.type} {t("typeSuffix")}
       </p>
@@ -62,7 +96,12 @@ export default async function ExercisePage({
           ))}
         </div>
       ) : null}
-      <ExerciseRunner exercise={exercise as never} />
+      <ExerciseRunner
+        exercise={exercise as never}
+        siblings={siblingExercises}
+        lessonTitle={lessonTitle}
+        locale={locale}
+      />
     </div>
   );
 }

@@ -219,6 +219,12 @@
     "examBadge": "Exam",
     "quizBadge": "Quiz",
     "progressHint": "Progress: complete all to mark the lesson as evaluated. Scores are saved per attempt.",
+    "nav": {
+      "prev": "Previous",
+      "next": "Next",
+      "counter": "Lesson {current} of {total}",
+      "unitLessons": "Unit lessons"
+    },
     "teachingContent": {
       "keyVocab": "Key vocabulary",
       "comingSoon": "Teaching content coming soon for {title}.",
@@ -229,7 +235,14 @@
     }
   },
   "exercise": {
-    "submit": "Submit",
+    "submit": "Check answer",
+    "submitShort": "Submit",
+    "validateAnswer": "Check answer",
+    "exerciseCounter": "Exercise {current} of {total}",
+    "prevExercise": "Previous",
+    "nextExercise": "Next",
+    "lessonLabel": "Lesson: {title}",
+    "submitFallback": "Submit",
     "retry": "Try again",
     "correct": "Correct!",
     "incorrect": "Not quite — try again",
@@ -245,7 +258,7 @@
     "revealing": "Click to reveal",
     "flipBack": "Click to flip back",
     "typeTranslationPlaceholder": "Type the translation (optional)",
-    "reviewed": "I reviewed it",
+    "reviewed": "Check answer",
     "reveal": "Reveal",
     "hide": "Hide",
     "say": "Say:",

@@ -219,6 +219,12 @@
     "examBadge": "Examen",
     "quizBadge": "Cuestionario",
     "progressHint": "Progreso: completa todo para marcar la lección como evaluada. Los puntajes se guardan por intento.",
+    "nav": {
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "counter": "Lección {current} de {total}",
+      "unitLessons": "Lecciones de la unidad"
+    },
     "teachingContent": {
       "keyVocab": "Vocabulario clave",
       "comingSoon": "Contenido didáctico próximamente para {title}.",
@@ -229,7 +235,14 @@
     }
   },
   "exercise": {
-    "submit": "Enviar",
+    "submit": "Validar respuesta",
+    "submitShort": "Enviar",
+    "validateAnswer": "Validar respuesta",
+    "exerciseCounter": "Ejercicio {current} de {total}",
+    "prevExercise": "Anterior",
+    "nextExercise": "Siguiente",
+    "lessonLabel": "Lección: {title}",
+    "submitFallback": "Enviar",
     "retry": "Intentar de nuevo",
     "correct": "¡Correcto!",
     "incorrect": "No del todo — intenta de nuevo",
@@ -245,7 +258,7 @@
     "revealing": "Haz clic para revelar",
     "flipBack": "Haz clic para volver",
     "typeTranslationPlaceholder": "Escribe la traducción (opcional)",
-    "reviewed": "Ya lo repasé",
+    "reviewed": "Validar respuesta",
     "reveal": "Revelar",
     "hide": "Ocultar",
     "say": "Di:",
