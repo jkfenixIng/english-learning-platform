@@ -1,6 +1,19 @@
 import Link from "next/link";
 import { isCurrentUserAdmin } from "../../../../lib/auth/requireAdmin";
 
+const NAV = [
+  { href: "/admin", label: "Overview", icon: "🏠" },
+  { href: "/admin/lessons", label: "Lecciones", icon: "📚" },
+  { href: "/admin/exercises", label: "Pruebas", icon: "🧩" },
+  { href: "/admin/levels", label: "Levels", icon: "🎯" },
+  { href: "/admin/units", label: "Units", icon: "📦" },
+  { href: "/admin/challenges", label: "Challenges", icon: "🏆" },
+  { href: "/admin/badges", label: "Badges", icon: "🎖️" },
+  { href: "/admin/shop", label: "Shop", icon: "🛍️" },
+  { href: "/admin/users", label: "Usuarios", icon: "👥" },
+  { href: "/admin/seed", label: "Seed", icon: "🌱" },
+];
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const isAdmin = await isCurrentUserAdmin();
   if (!isAdmin) {
@@ -32,26 +45,39 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <header className="sticky top-0 z-10 border-b bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Link href="/admin" className="font-bold text-indigo-600">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="sticky top-0 z-10 border-b bg-white/80 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-2 font-bold text-indigo-600 dark:text-indigo-400"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-sm text-white">
+              A
+            </span>
             Admin Panel
+            <span className="hidden rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 sm:inline dark:bg-indigo-950 dark:text-indigo-200">
+              modo guiado
+            </span>
           </Link>
-          <nav className="flex flex-wrap gap-3 text-sm" aria-label="Admin navigation">
-            <Link href="/admin" className="underline">
-              Overview
+          <nav className="flex flex-wrap gap-1 text-xs sm:gap-1.5" aria-label="Admin navigation">
+            {NAV.map((n) => (
+              <Link
+                key={n.href}
+                href={n.href}
+                className="inline-flex items-center gap-1 rounded-full border bg-white px-2.5 py-1.5 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+                title={n.label}
+              >
+                <span aria-hidden>{n.icon}</span>
+                <span className="hidden sm:inline">{n.label}</span>
+              </Link>
+            ))}
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1.5 text-white hover:bg-black dark:bg-white dark:text-slate-900"
+            >
+              ← App
             </Link>
-            <Link href="/admin/levels">Levels</Link>
-            <Link href="/admin/units">Units</Link>
-            <Link href="/admin/lessons">Lessons</Link>
-            <Link href="/admin/exercises">Exercises</Link>
-            <Link href="/admin/challenges">Challenges</Link>
-            <Link href="/admin/badges">Badges</Link>
-            <Link href="/admin/shop">Shop</Link>
-            <Link href="/admin/users">Users</Link>
-            <Link href="/admin/seed">Seed</Link>
-            <Link href="/dashboard">← App</Link>
           </nav>
         </div>
       </header>
