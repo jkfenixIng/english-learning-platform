@@ -54,13 +54,32 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       });
       attemptId = attempt.id;
       const xp = computeXp({ difficulty: exercise.difficulty });
-      await prisma.userStreak
-        .upsert({
-          where: { userId },
-          update: { xp: { increment: xp }, lastActivityDate: new Date() },
-          create: { userId, currentStreak: 1, longestStreak: 1, lastActivityDate: new Date(), xp },
-        })
-        .catch(() => {});
+      // XP y monedas separadas: 1 XP = 1 coin, sin usar $queryRaw para no romper deploy si columna aún no existe
+      try {
+        await prisma.$executeRawUnsafe(
+          `INSERT INTO public.user_streaks (user_id, current_streak, longest_streak, last_activity_date, xp, coins, freeze_count)
+           VALUES ($1::uuid, 1, 1, $2::date, $3, $3, 0)
+           ON CONFLICT (user_id) DO UPDATE SET xp = public.user_streaks.xp + $3, coins = public.user_streaks.coins + $3, last_activity_date = $2::date`,
+          userId,
+          new Date().toISOString().slice(0, 10),
+          xp,
+        );
+      } catch {
+        // Fallback si columna coins aún no existe (migración pendiente)
+        await prisma.userStreak
+          .upsert({
+            where: { userId },
+            update: { xp: { increment: xp }, lastActivityDate: new Date() },
+            create: {
+              userId,
+              currentStreak: 1,
+              longestStreak: 1,
+              lastActivityDate: new Date(),
+              xp,
+            },
+          })
+          .catch(() => {});
+      }
       await prisma.progress
         .upsert({
           where: { userId_lessonId: { userId, lessonId: exercise.lessonId } },

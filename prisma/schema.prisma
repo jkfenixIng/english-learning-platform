@@ -222,6 +222,7 @@ model UserStreak {
   lastActivityDate DateTime? @map("last_activity_date") @db.Date
   freezeCount      Int      @default(0) @map("freeze_count")
   xp               Int      @default(0)
+  coins            Int      @default(0)
 
   @@map("user_streaks")
 }

@@ -11,21 +11,66 @@ export async function purchaseItem(userId: string, shopItemId: string) {
     });
     if (existing) throw new Error("Already owned");
 
-    const updateRes = await tx.userStreak.updateMany({
-      where: { userId, xp: { gte: item.priceXp } },
-      data: { xp: { decrement: item.priceXp } },
-    });
-    if (updateRes.count === 0) {
-      const streak = await tx.userStreak.findUnique({ where: { userId } });
-      const xp = (streak as unknown as { xp: number } | null)?.xp ?? 0;
-      if (xp < item.priceXp) throw new Error("Insufficient XP");
-      // Fallback if streak missing but update failed for other reason
-      throw new Error("Insufficient XP");
+    const price = item.priceXp;
+    const cosmeticType = (item as unknown as { cosmeticType: string }).cosmeticType;
+
+    // Detect whether coins column exists (fallback to xp if migration not yet applied)
+    let useCoins = true;
+    try {
+      await tx.$queryRawUnsafe(`SELECT coins FROM public.user_streaks LIMIT 0`);
+    } catch {
+      useCoins = false;
     }
 
-    return tx.userInventory.create({
+    if (useCoins) {
+      // Use raw SQL to avoid type error before prisma generate (coins added in 003)
+      const updated = (await tx.$executeRawUnsafe(
+        `UPDATE public.user_streaks SET coins = coins - $2 WHERE user_id = $1::uuid AND coins >= $2`,
+        userId,
+        price,
+      )) as unknown as number;
+      // $executeRawUnsafe returns row count; fallback to updateMany count check via query
+      const check = updated === 1 ? 1 : 0;
+      let effective = check;
+      if (effective === 0) {
+        // Try count via select to distinguish missing row vs insufficient coins
+        const rows = (await tx.$queryRawUnsafe(
+          `SELECT coins FROM public.user_streaks WHERE user_id = $1::uuid`,
+          userId,
+        )) as unknown as { coins: number }[];
+        const coins = rows[0]?.coins ?? 0;
+        if (coins < price) throw new Error("Insufficient coins");
+        // If row existed but raw returned 0 due to driver, still treat as insufficient
+        throw new Error("Insufficient coins");
+      }
+    } else {
+      const updateRes = await tx.userStreak.updateMany({
+        where: { userId, xp: { gte: price } },
+        data: { xp: { decrement: price } },
+      });
+      if (updateRes.count === 0) {
+        const streak = await tx.userStreak.findUnique({ where: { userId } });
+        const xp = (streak as unknown as { xp: number } | null)?.xp ?? 0;
+        if (xp < price) throw new Error("Insufficient XP");
+        throw new Error("Insufficient XP");
+      }
+    }
+
+    const inv = await tx.userInventory.create({
       data: { userId, shopItemId, purchasedAt: new Date() } as never,
     });
+
+    // Streak Freeze consumable: increment freezeCount immediately and mark inventory as consumed (equipped false)
+    if (cosmeticType === "freeze") {
+      try {
+        await tx.userStreak.update({
+          where: { userId },
+          data: { freezeCount: { increment: 1 } },
+        });
+      } catch {}
+    }
+
+    return inv;
   });
 }
 

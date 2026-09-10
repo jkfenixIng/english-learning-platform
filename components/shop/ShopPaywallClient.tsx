@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { PaywallPlaceholder } from "../monetization/PaywallPlaceholder";
 import { usePreferencesStore } from "../../lib/stores/preferences";
+import { ShopPreview } from "./ShopPreview";
 
 type Item = {
   id: string;
@@ -49,12 +50,15 @@ function themeFromTitle(title: string): string | null {
 export function ShopPaywallClient({
   items,
   userXp = 0,
+  userCoins,
   initialInventory = [],
 }: {
   items: Item[];
   userXp?: number;
+  userCoins?: number;
   initialInventory?: InventoryItem[];
 }) {
+  const coins = userCoins ?? userXp;
   const [paywallFor, setPaywallFor] = useState<string | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [equipLoading, setEquipLoading] = useState<string | null>(null);
@@ -89,8 +93,12 @@ export function ShopPaywallClient({
       setPaywallFor(item.id);
       return;
     }
-    if (userXp < item.priceXp) {
-      setError(tShop("insufficientXp"));
+    if (coins < item.priceXp) {
+      setError(
+        tShop.has("insufficientCoins")
+          ? tShop("insufficientCoins")
+          : "Not enough coins — earn XP to get coins",
+      );
       return;
     }
     if (ownedIds.has(item.id)) {
@@ -149,15 +157,35 @@ export function ShopPaywallClient({
             document.documentElement.dataset.theme = themeVal;
             const isDark = ["midnight", "aurora", "dark"].includes(themeVal);
             document.documentElement.classList.toggle("dark", isDark);
-            setSuccess(tShop("purchaseSuccess", { title: `${invItem.title} equipped` }));
+            setSuccess(`Tema cambiado a ${invItem.title} — ${themeVal}`);
+            window.dispatchEvent(
+              new CustomEvent("shop:theme", { detail: { theme: themeVal, title: invItem.title } }),
+            );
           } else {
             setTheme("light" as never);
             document.documentElement.removeAttribute("data-theme");
             document.documentElement.classList.remove("dark");
+            setSuccess("Tema restablecido a claro");
           }
         }
+      } else if (invItem?.cosmeticType === "freeze") {
+        setSuccess(
+          "🧊 Streak Freeze activado — protegerá tu racha 1 día si olvidas practicar (se consume automáticamente).",
+        );
       } else if (shouldEquip) {
         setSuccess(tShop("purchaseSuccess", { title: `${invItem?.title ?? itemId} equipped` }));
+        window.dispatchEvent(
+          new CustomEvent("shop:equip", {
+            detail: { itemId, cosmeticType: invItem?.cosmeticType },
+          }),
+        );
+      } else {
+        // unequip success
+        window.dispatchEvent(
+          new CustomEvent("shop:equip", {
+            detail: { itemId, cosmeticType: invItem?.cosmeticType },
+          }),
+        );
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : tShop("purchaseFailed"));
@@ -189,10 +217,21 @@ export function ShopPaywallClient({
         </div>
       ) : null}
 
+      {/* Balances visible in client too */}
+      <div className="flex flex-wrap gap-2 text-xs">
+        <span className="rounded-full border bg-amber-50 px-2.5 py-1 font-medium text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+          ⭐ XP {userXp}
+        </span>
+        <span className="rounded-full border bg-sky-50 px-2.5 py-1 font-medium text-sky-800 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-200">
+          🪙 Monedas {coins}
+        </span>
+      </div>
+
       {/* Shop grid */}
       <div className="grid gap-3 sm:grid-cols-2">
         {items.map((it) => {
-          const insufficient = !it.isPremium && userXp < it.priceXp;
+          const insufficient = !it.isPremium && coins < it.priceXp;
+          const isFreeze = it.cosmeticType === "freeze";
           const isLoading = loadingId === it.id;
           const isOwned = ownedIds.has(it.id);
           const isEquipped = equippedIds.has(it.id);
@@ -239,9 +278,34 @@ export function ShopPaywallClient({
                   </p>
                   <p className="text-xs text-gray-500">
                     {it.cosmeticType} · {it.rarity}
+                    {isFreeze ? (
+                      <span
+                        className="ml-1 inline-flex items-center gap-1 rounded bg-sky-100 px-1 py-0.5 text-[10px] text-sky-700 dark:bg-sky-900 dark:text-sky-200"
+                        title="Protege tu racha 1 día si olvidas practicar — se consume automáticamente al fallar un día"
+                      >
+                        🧊 <span>Streak Freeze</span>
+                        <span aria-hidden title="Se consume automáticamente si fallas 1 día">
+                          ❓
+                        </span>
+                      </span>
+                    ) : null}
                   </p>
+                  {isFreeze ? (
+                    <p className="mt-1 text-xs leading-snug text-sky-700 dark:text-sky-300">
+                      Protege tu racha 1 día si olvidas practicar — se consume automáticamente al
+                      fallar un día
+                    </p>
+                  ) : null}
+                  {it.description ? (
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                      {it.description}
+                    </p>
+                  ) : null}
                   <p className="mt-2 text-sm font-semibold">
-                    {tShop("priceXp", { price: it.priceXp })}
+                    <span aria-hidden>🪙</span> {it.priceXp} monedas
+                    <span className="ml-1 text-xs font-normal text-slate-500">
+                      · XP no se gasta
+                    </span>
                   </p>
                   {it.isPremium ? (
                     <button
@@ -280,7 +344,9 @@ export function ShopPaywallClient({
                   )}
                   {insufficient && !isOwned ? (
                     <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                      {tShop("insufficientXp")}
+                      {tShop.has("insufficientCoins")
+                        ? tShop("insufficientCoins")
+                        : "Not enough coins"}
                     </p>
                   ) : null}
                 </div>
@@ -288,6 +354,11 @@ export function ShopPaywallClient({
             </div>
           );
         })}
+      </div>
+
+      {/* Preview mini */}
+      <div className="mt-6">
+        <ShopPreview equipped={inventory.filter((i) => i.equipped).map((i) => i.shopItem)} />
       </div>
 
       {/* Inventory section */}

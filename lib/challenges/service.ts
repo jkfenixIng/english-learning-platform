@@ -104,13 +104,23 @@ export async function updateProgress(
           completedAt: new Date(),
         } as never,
       });
-      await tx.userStreak
-        .upsert({
-          where: { userId },
-          update: { xp: { increment: challenge.rewardXp } },
-          create: { userId, xp: challenge.rewardXp, currentStreak: 1, longestStreak: 1 } as never,
-        })
-        .catch(() => {});
+      try {
+        await tx.$executeRawUnsafe(
+          `INSERT INTO public.user_streaks (user_id, current_streak, longest_streak, xp, coins, freeze_count)
+           VALUES ($1::uuid, 1, 1, $2, $2, 0)
+           ON CONFLICT (user_id) DO UPDATE SET xp = public.user_streaks.xp + $2, coins = public.user_streaks.coins + $2`,
+          userId,
+          challenge.rewardXp,
+        );
+      } catch {
+        await tx.userStreak
+          .upsert({
+            where: { userId },
+            update: { xp: { increment: challenge.rewardXp } },
+            create: { userId, xp: challenge.rewardXp, currentStreak: 1, longestStreak: 1 } as never,
+          })
+          .catch(() => {});
+      }
       await tx.notification
         .create({
           data: {
