@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import type { LessonContent, LessonContentBlock } from "@/lib/lesson/types";
 import { localizeBlock } from "@/lib/lesson/localize";
 import { cn } from "@/lib/utils/cn";
+import { isValidCanonicalImageName } from "@/lib/curriculum/imageNaming";
 
 interface Props {
   content: LessonContent | null | undefined;
@@ -33,6 +34,22 @@ function BlockRenderer({ block, locale }: { block: LessonContentBlock; locale: s
       const rawSrc = b.url?.trim() ? b.url.trim() : "/lesson-images/teaching-placeholder.png";
       const alt = b.alt?.trim() ? b.alt : "Lesson illustration";
       const caption = b.caption;
+
+      // PR2 alias fallback: canonical-first. Client keeps canonical src;
+      // onError tries heuristic legacy alias before placeholder (resolver canonical->alias).
+      const getFallbackForCanonical = (src: string): string | null => {
+        const filename = src.split("/").pop() ?? "";
+        if (!isValidCanonicalImageName(filename)) return null;
+        // heuristic legacy: lessons/{level}-u{module}-l{num}.png
+        const m = /^([a-c][12])_m([1-4])_(?:img|audio|ill)_([a-z0-9_]+)\.png$/.exec(filename);
+        if (!m) return null;
+        const level = m[1]!;
+        const mod = m[2]!;
+        const descriptor = m[3]!;
+        const lessonNum = /^l[1-3]$/.test(descriptor) ? descriptor.slice(1) : "1";
+        return `/lesson-images/lessons/${level}-u${mod}-l${lessonNum}.png`;
+      };
+
       return (
         <figure className="overflow-hidden rounded-2xl border bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="relative aspect-[16/9] w-full bg-slate-50 dark:bg-slate-800">
@@ -44,6 +61,14 @@ function BlockRenderer({ block, locale }: { block: LessonContentBlock; locale: s
               onError={(e) => {
                 const el = e.currentTarget as HTMLImageElement;
                 if (el.src.endsWith("teaching-placeholder.png")) return;
+                // try alias once before placeholder
+                const alias = getFallbackForCanonical(el.src);
+                if (alias && !el.dataset.aliased) {
+                  el.dataset.aliased = "1";
+                  // avoid infinite loop if alias itself 404 — next error hits placeholder
+                  el.src = alias;
+                  return;
+                }
                 el.src = "/lesson-images/teaching-placeholder.png";
               }}
               loading="lazy"
