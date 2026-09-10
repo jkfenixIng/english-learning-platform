@@ -1269,12 +1269,13 @@ function buildLessonContent(
   const subtitles = LESSON_SUBTITLES[unitKey] ?? ["Topic A", "Topic B", "Topic C", "Topic D"];
   const focus = subtitles[(lessonIndex - 1) % subtitles.length]!;
 
-  // Rotate vocab per lesson: 3-4 items, offset by lessonIndex
+  // Partition vocab per lesson into distinct chunks (sub-topics) using a sequential extended pool
+  // Ensures L1..L4 within a unit do not repeat the same 3 words identically.
   const vocabCount = lessonIndex % 2 === 0 ? 4 : 3;
-  const offset = (lessonIndex - 1) * vocabCount;
-  const selectedWords: string[] = [];
-  for (let i = 0; i < vocabCount; i++)
-    selectedWords.push(vocabPool[(offset + i) % vocabPool.length]!);
+  const extendedPool = [...vocabPool, ...vocabPool, ...vocabPool];
+  let cursor = 0;
+  for (let k = 1; k < lessonIndex; k++) cursor += k % 2 === 0 ? 4 : 3;
+  const selectedWords: string[] = extendedPool.slice(cursor, cursor + vocabCount);
 
   const unitNameEn = LEVEL_META[levelCode]!.unitNames[unitIndex - 1]!;
   const unitNameEs = LEVEL_META_ES[levelCode]![unitIndex - 1]!;
@@ -1904,6 +1905,303 @@ const C_TEMPLATES: typeof EXERCISE_TEMPLATES = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Thematic exercise helpers — exercises are now built from the lesson's own vocab/phrases
+// ---------------------------------------------------------------------------
+function getAccumulatedVocab(levelCode: string, upToUnit: number): string[] {
+  const all: string[] = [];
+  for (let u = 1; u <= upToUnit; u++) {
+    const key = `${levelCode}-${u}`;
+    if (UNIT_VOCAB[key]) all.push(...UNIT_VOCAB[key]!);
+  }
+  // deduplicate preserving order
+  return [...new Set(all)];
+}
+
+function difficultyForLevel(levelCode: string): number {
+  if (levelCode.startsWith("C")) return 5;
+  if (levelCode.startsWith("B")) return 3;
+  return 1;
+}
+
+function thematicFlashcard(word: string, difficulty: number) {
+  const d = vocabDetail(word);
+  return {
+    type: "flashcard" as const,
+    prompt: {
+      front: word,
+      back: d.defEs,
+      hint: d.defEn,
+      imageUrl: flashcardLocalPath(word.toLowerCase()),
+    },
+    solution: { back: d.defEs },
+    difficulty,
+  };
+}
+
+function thematicFillBlanks(word: string, difficulty: number) {
+  const d = vocabDetail(word);
+  const sentence = d.example.includes(word)
+    ? d.example.replace(new RegExp(word, "i"), "___")
+    : `I use "${word}" (${d.defEn}) every day. I ___ it a lot.`;
+  // ensure blank token exists
+  const text = sentence.includes("___") ? sentence : `${sentence} Fill: ___`;
+  return {
+    type: "fill_blanks" as const,
+    prompt: { text, blanks: [{ id: "b1", hint: `${word}: ${d.defEn}` }] },
+    solution: { answers: { b1: [word, word.toLowerCase()] } },
+    difficulty,
+  };
+}
+
+function thematicMatching(words: string[], difficulty: number) {
+  const slice = words.slice(0, Math.min(4, words.length));
+  const pairs = slice.map((w, i) => ({ id: String(i + 1), left: w, right: vocabDetail(w).defEs }));
+  return {
+    type: "matching" as const,
+    prompt: { pairs, imageUrl: "/lesson-images/teaching-placeholder.png" },
+    solution: { pairs },
+    difficulty,
+  };
+}
+
+function thematicOrdering(words: string[], phrase: string, difficulty: number) {
+  const d = vocabDetail(words[0] ?? phrase);
+  const base = d.example || phrase;
+  const tokens = base.split(" ").filter(Boolean);
+  // deterministic shuffle: reverse + rotate for visibility but solution keeps correct order
+  const shuffled = [...tokens].reverse();
+  // ensure at least 3 tokens
+  const finalTokens =
+    shuffled.length >= 2 ? shuffled : [...words, ...phrase.split(" ")].slice(0, 5);
+  return {
+    type: "ordering" as const,
+    prompt: { tokens: finalTokens, hint: `Order to form: "${base}"` },
+    solution: { order: tokens },
+    difficulty,
+  };
+}
+
+function thematicListening(word: string, difficulty: number) {
+  const d = vocabDetail(word);
+  return {
+    type: "listening_tts" as const,
+    prompt: {
+      text: d.example,
+      question: `What did you hear about "${word}"?`,
+      options: [d.example, "Different sentence"],
+    },
+    solution: { answer: d.example },
+    difficulty,
+  };
+}
+
+function thematicDictation(word: string, difficulty: number) {
+  const d = vocabDetail(word);
+  return {
+    type: "dictation" as const,
+    prompt: { text: d.example, playsAllowed: 2 },
+    solution: { text: d.example },
+    difficulty,
+  };
+}
+
+function thematicComprehension(word: string, phrase: string, difficulty: number) {
+  const d = vocabDetail(word);
+  const passage = `${d.example} This is used when we talk about "${phrase}". The word "${word}" means ${d.defEn}.`;
+  return {
+    type: "comprehension" as const,
+    prompt: {
+      passage,
+      question: `What does "${word}" mean?`,
+      options: [d.defEs, "otra cosa", "ninguna"],
+      imageUrl: "/lesson-images/teaching-placeholder.png",
+    },
+    solution: { answer: d.defEs },
+    difficulty,
+  };
+}
+
+function thematicGradedReading(
+  words: string[],
+  phrase: string,
+  levelCode: string,
+  difficulty: number,
+) {
+  const title = `Reading: ${phrase}`;
+  const passage =
+    words.map((w) => vocabDetail(w).example).join(" ") + ` In this context, "${phrase}" is common.`;
+  const vocab = words.slice(0, 3).map((w) => ({ word: w, definition: vocabDetail(w).defEn }));
+  const q1Word = words[0]!;
+  const q1 = {
+    id: "q1",
+    question: `What does "${q1Word}" mean?`,
+    options: [vocabDetail(q1Word).defEs, "otra definición"],
+    answer: vocabDetail(q1Word).defEs,
+  };
+  const q2 = {
+    id: "q2",
+    question: `Which phrase appears in the text?`,
+    options: [phrase, "Not in the text"],
+    answer: phrase,
+  };
+  return {
+    type: "graded_reading" as const,
+    prompt: {
+      title,
+      passage,
+      vocab,
+      questions: [q1, q2],
+      imageUrl: "/lesson-images/teaching-placeholder.png",
+    },
+    solution: { answers: { q1: q1.answer, q2: q2.answer } },
+    difficulty: levelCode.startsWith("C") ? 5 : difficulty,
+  };
+}
+
+function thematicWriting(words: string[], phrase: string, levelCode: string, difficulty: number) {
+  const minWords = levelCode.startsWith("C") ? 80 : levelCode.startsWith("B") ? 50 : 20;
+  const maxWords = levelCode.startsWith("C") ? 200 : levelCode.startsWith("B") ? 120 : 80;
+  return {
+    type: "writing_prompt" as const,
+    prompt: {
+      prompt: `Write ${minWords}-${maxWords} words using these words you learned: ${words.join(", ")}. Include the phrase "${phrase}".`,
+      minWords,
+      maxWords,
+    },
+    solution: {
+      sampleAnswer: `I learned ${words.join(", ")} and I can use "${phrase}" in a sentence. ${words.map((w) => vocabDetail(w).example).join(" ")}`,
+    },
+    difficulty,
+  };
+}
+
+function thematicSpeaking(word: string, difficulty: number) {
+  const d = vocabDetail(word);
+  return {
+    type: "speaking_record" as const,
+    prompt: { text: d.example, instruction: `Say a sentence with "${word}"` },
+    solution: { reference: d.example },
+    difficulty,
+  };
+}
+
+function thematicShadowing(word: string, phrase: string, difficulty: number) {
+  const ref = vocabDetail(word).example || phrase;
+  return {
+    type: "shadowing" as const,
+    prompt: { reference: ref, speed: 1 },
+    solution: { reference: ref },
+    difficulty,
+  };
+}
+
+function thematicPronunciation(word: string, difficulty: number) {
+  const d = vocabDetail(word);
+  return {
+    type: "pronunciation" as const,
+    prompt: { word, phonetic: `/${word}/`, example: d.example },
+    solution: { word },
+    difficulty,
+  };
+}
+
+function thematicTransformation(word: string, difficulty: number) {
+  const d = vocabDetail(word);
+  return {
+    type: "transformation" as const,
+    prompt: { instruction: `Rewrite to include "${word}" (${d.defEn})`, sentence: d.example },
+    solution: { accepted: [d.example] },
+    difficulty,
+  };
+}
+
+function buildThematicExercisesForLesson(opts: {
+  levelCode: string;
+  unitIndex: number;
+  lessonIndex: number;
+  kind: "teach" | "quiz" | "exam";
+  lessonWords: string[];
+  phrasesEn: string[];
+  difficulty: number;
+  perCount: number;
+}): { type: string; prompt: unknown; solution: unknown; difficulty: number }[] {
+  const { levelCode, lessonWords, phrasesEn, difficulty, perCount, kind } = opts;
+  const words = lessonWords.length ? lessonWords : ["hello"];
+  const phrase = phrasesEn[0] ?? `Use ${words[0]}`;
+
+  // Build a rotating agenda of makers that guarantees prompt/solution contain lessonWords
+  type Maker = () => { type: string; prompt: unknown; solution: unknown; difficulty: number };
+  const makers: Maker[] = [];
+
+  // Core thematic makers — each uses at least one lesson word
+  makers.push(() => thematicFlashcard(words[0]!, difficulty));
+  makers.push(() => thematicFillBlanks(words[0]!, difficulty));
+  makers.push(() => thematicMatching(words, difficulty));
+  makers.push(() => thematicOrdering(words, phrase, difficulty));
+  // For B/C add heavier types, for A add listening/comprehension variety
+  if (levelCode.startsWith("C")) {
+    makers.push(() => thematicGradedReading(words, phrase, levelCode, difficulty));
+    makers.push(() => thematicTransformation(words[0]!, difficulty));
+    makers.push(() => thematicWriting(words, phrase, levelCode, difficulty));
+    makers.push(() => thematicPronunciation(words[0]!, difficulty));
+    makers.push(() => thematicShadowing(words[0]!, phrase, difficulty));
+  } else if (levelCode.startsWith("B")) {
+    makers.push(() => thematicComprehension(words[0]!, phrase, difficulty));
+    makers.push(() => thematicListening(words[1] ?? words[0]!, difficulty));
+    makers.push(() => thematicDictation(words[0]!, difficulty));
+    makers.push(() => thematicGradedReading(words, phrase, levelCode, difficulty));
+    makers.push(() => thematicWriting(words, phrase, levelCode, difficulty));
+    makers.push(() => thematicTransformation(words[0]!, difficulty));
+  } else {
+    makers.push(() => thematicListening(words[0]!, difficulty));
+    makers.push(() => thematicComprehension(words[0]!, phrase, difficulty));
+    makers.push(() => thematicDictation(words[0]!, difficulty));
+    makers.push(() => thematicSpeaking(words[0]!, difficulty));
+    makers.push(() => thematicGradedReading(words, phrase, levelCode, difficulty));
+  }
+
+  // For quiz/exam add a distinct header: ensure coverage of accumulated words — rotate through accumulated set
+  const result: { type: string; prompt: unknown; solution: unknown; difficulty: number }[] = [];
+  for (let i = 0; i < perCount; i++) {
+    const maker = makers[i % makers.length]!;
+    // For quiz/exam, vary the word used by cycling through words array
+    const variedWord = words[i % words.length]!;
+    // Adjust maker word where applicable by wrapping maker that uses variedWord
+    let item: any;
+    if (i < makers.length) {
+      item = maker();
+    } else {
+      // Cycle with varied word for diversity in review lessons
+      const idx = i % 5;
+      if (idx === 0) item = thematicFlashcard(variedWord, difficulty);
+      else if (idx === 1) item = thematicFillBlanks(variedWord, difficulty);
+      else if (idx === 2) item = thematicMatching(words, difficulty);
+      else if (idx === 3) item = thematicComprehension(variedWord, phrase, difficulty);
+      else item = thematicListening(variedWord, difficulty);
+    }
+    // Ensure phrase ordering for quiz alternates phrases
+    if (kind !== "teach" && item.type === "ordering") {
+      const altPhrase = phrasesEn[i % phrasesEn.length] ?? phrase;
+      item = thematicOrdering(words, altPhrase, difficulty);
+    }
+    result.push(item);
+  }
+  // Ensure we keep legacy imageUrl fallback for renderers expecting it
+  return (result as { type: string; prompt: unknown; solution: unknown; difficulty: number }[]).map(
+    (ex: { type: string; prompt: unknown; solution: unknown; difficulty: number }) => {
+      const p = ex.prompt as Record<string, unknown>;
+      if (
+        (ex.type === "graded_reading" || ex.type === "comprehension" || ex.type === "matching") &&
+        !p["imageUrl"]
+      ) {
+        return { ...ex, prompt: { ...p, imageUrl: "/lesson-images/teaching-placeholder.png" } };
+      }
+      return ex;
+    },
+  ) as any;
+}
+
 const UNITS_PER_LEVEL = 6;
 const LESSONS_PER_UNIT = 5;
 
@@ -1926,7 +2224,10 @@ async function seedLevel(levelCode: string) {
     : levelCode.startsWith("B")
       ? B_TEMPLATES
       : EXERCISE_TEMPLATES;
-  const perLessonCount = levelCode.startsWith("C") ? 5 : levelCode.startsWith("B") ? 4 : 3;
+  const perTeach = levelCode.startsWith("C") ? 5 : levelCode.startsWith("B") ? 4 : 3;
+  const perQuiz = levelCode.startsWith("C") ? 7 : levelCode.startsWith("B") ? 6 : 5;
+  const perExam = levelCode.startsWith("C") ? 6 : 5;
+  const difficulty = difficultyForLevel(levelCode);
 
   for (let ui = 1; ui <= UNITS_PER_LEVEL; ui++) {
     const unitCover = coverForLevel(levelCode);
@@ -2078,85 +2379,245 @@ async function seedLevel(levelCode: string) {
         }
       }
 
-      // Ensure exercises — perLessonCount, plus image fallback for reading/matching/comprehension
-      const startIdx = ((ui - 1) * perLessonCount + (li - 1) * perLessonCount) % templates.length;
-      for (let ei = 0; ei < perLessonCount; ei++) {
-        const tmpl = templates[(startIdx + ei) % templates.length]!;
-        const existing = await prisma.exercise.findFirst({
-          where: { lessonId: lesson.id, type: tmpl.type as never },
-        });
-        if (existing) {
-          // backfill imageUrl for legacy flashcard/picsum or missing hero
-          const prompt = (existing.prompt ?? {}) as Record<string, unknown>;
-          let needsPatch = false;
-          const patchPrompt: Record<string, unknown> = { ...prompt };
-          if (
-            tmpl.type === "flashcard" &&
-            typeof prompt.imageUrl === "string" &&
-            (prompt.imageUrl as string).includes("picsum.photos")
-          ) {
-            const front = (prompt.front as string) || "apple";
-            const local = flashcardLocalPath(front.toLowerCase());
-            // keep picsum fallback via renderer onError, but prefer local if in allowlist
+      // Thematic exercises aligned to lesson vocab — replaces generic template loop
+      const unitKey = `${levelCode}-${ui}`;
+      const perCountForKind = kind === "quiz" ? perQuiz : perTeach;
+
+      // Derive lessonWords and phrasesEn per kind
+      let lessonWords: string[] = [];
+      let phrasesEn: string[] = [];
+      if (kind === "teach") {
+        const srcContent =
+          (content as { blocks?: unknown[] } | null) ??
+          ((lesson as unknown as { content: { blocks?: unknown[] } | null }).content as never);
+        const blocks = ((srcContent as { blocks?: unknown[] })?.blocks ?? []) as Array<
+          Record<string, unknown>
+        >;
+        const vocabBlock = blocks.find((b) => b.type === "vocab") as
+          { items?: Array<{ word: string }> } | undefined;
+        const extracted =
+          vocabBlock?.items?.map((it) => String(it.word).toLowerCase()).filter(Boolean) ?? [];
+        lessonWords = extracted.length
+          ? extracted
+          : (UNIT_VOCAB[unitKey] ?? ["hello"]).slice(0, 3).map((w) => w.toLowerCase());
+        phrasesEn =
+          UNIT_PHRASES[unitKey]?.en ??
+          LESSON_SUBTITLES[unitKey] ??
+          (LESSON_SUBTITLES[unitKey]?.[0] ? [LESSON_SUBTITLES[unitKey]![0]!] : ["Hello"]);
+      } else {
+        // quiz: accumulated vocab/phrases up to ui-1 (or ui if empty)
+        let acc = getAccumulatedVocab(levelCode, ui - 1);
+        if (!acc.length) acc = getAccumulatedVocab(levelCode, ui);
+        if (!acc.length) acc = UNIT_VOCAB[unitKey] ?? ["hello"];
+        lessonWords = acc.map((w) => w.toLowerCase());
+        const accPhrases: string[] = [];
+        for (let pu = 1; pu <= ui; pu++) {
+          const k = `${levelCode}-${pu}`;
+          if (UNIT_PHRASES[k]?.en) accPhrases.push(...UNIT_PHRASES[k]!.en);
+          else if (LESSON_SUBTITLES[k]?.[0]) accPhrases.push(LESSON_SUBTITLES[k]![0]!);
+        }
+        phrasesEn = accPhrases.length ? accPhrases : (UNIT_PHRASES[unitKey]?.en ?? ["Review"]);
+      }
+
+      const thematicItems = buildThematicExercisesForLesson({
+        levelCode,
+        unitIndex: ui,
+        lessonIndex: li,
+        kind,
+        lessonWords,
+        phrasesEn,
+        difficulty,
+        perCount: perCountForKind,
+      });
+
+      const existingExercises = await prisma.exercise.findMany({
+        where: { lessonId: lesson.id },
+        orderBy: { id: "asc" },
+      });
+
+      const promptContainsLessonWord = (prompt: unknown, words: string[]): boolean => {
+        if (!words.length) return true;
+        const hay = JSON.stringify(prompt ?? "").toLowerCase();
+        return words.some((w) => hay.includes(w.toLowerCase()));
+      };
+
+      if (existingExercises.length === 0) {
+        for (const item of thematicItems) {
+          await prisma.exercise.create({
+            data: {
+              lessonId: lesson.id,
+              type: item.type as never,
+              difficulty: item.difficulty,
+              prompt: item.prompt as never,
+              solution: item.solution as never,
+              aiGenerated: false,
+            },
+          });
+        }
+      } else if (existingExercises.length < thematicItems.length) {
+        // Patch poor existing then create missing
+        for (let idx = 0; idx < existingExercises.length; idx++) {
+          const ex = existingExercises[idx]!;
+          const thematic = thematicItems[idx]!;
+          const prompt = (ex.prompt ?? {}) as Record<string, unknown>;
+          const isPoor = !promptContainsLessonWord(prompt, lessonWords);
+          // legacy picsum flashcard -> fix imageUrl to local if thematic is flashcard
+          let needsPatch = isPoor;
+          let patchPrompt: Record<string, unknown> = {
+            ...(thematic.prompt as Record<string, unknown>),
+          };
+          if (!isPoor) {
+            // still fix missing imageUrl for reading/matching/comprehension
             if (
-              FLASHCARD_LOCAL_WORDS.has(front.toLowerCase()) ||
-              front.toLowerCase().includes("apple") ||
-              front.toLowerCase().includes("sustainable") ||
-              front.toLowerCase().includes("mitigate")
+              (ex.type === "graded_reading" ||
+                ex.type === "comprehension" ||
+                ex.type === "matching") &&
+              !prompt.imageUrl
             ) {
-              patchPrompt.imageUrl = local;
+              patchPrompt = {
+                ...(prompt as Record<string, unknown>),
+                imageUrl: "/lesson-images/teaching-placeholder.png",
+              };
               needsPatch = true;
+            } else if (
+              ex.type === "flashcard" &&
+              typeof prompt.imageUrl === "string" &&
+              (prompt.imageUrl as string).includes("picsum.photos")
+            ) {
+              const front = String((prompt.front as string) ?? lessonWords[0] ?? "apple");
+              const local = flashcardLocalPath(front.toLowerCase());
+              patchPrompt = { ...prompt, imageUrl: local };
+              needsPatch = true;
+            } else {
+              needsPatch = false;
             }
-          }
-          if (
-            (tmpl.type === "graded_reading" ||
-              tmpl.type === "comprehension" ||
-              tmpl.type === "matching") &&
-            !prompt.imageUrl &&
-            !(prompt as unknown as { images?: unknown }).images
-          ) {
-            patchPrompt.imageUrl = "/lesson-images/teaching-placeholder.png";
-            needsPatch = true;
           }
           if (needsPatch) {
             try {
               await prisma.exercise.update({
-                where: { id: existing.id },
-                data: { prompt: patchPrompt as never },
+                where: { id: ex.id },
+                data: {
+                  type: thematic.type as never,
+                  difficulty: thematic.difficulty,
+                  prompt: patchPrompt as never,
+                  solution: thematic.solution as never,
+                },
+              });
+            } catch {}
+          } else if (
+            (thematic.type === "graded_reading" ||
+              thematic.type === "comprehension" ||
+              thematic.type === "matching") &&
+            !(prompt as Record<string, unknown>).imageUrl
+          ) {
+            // ensure placeholder even when not poor
+            try {
+              await prisma.exercise.update({
+                where: { id: ex.id },
+                data: {
+                  prompt: {
+                    ...prompt,
+                    imageUrl: "/lesson-images/teaching-placeholder.png",
+                  } as never,
+                },
               });
             } catch {}
           }
-          continue;
         }
-        // create new exercise with prompt image fallback if needed
-        const basePrompt = tmpl.prompt as Record<string, unknown>;
-        const promptWithImage: Record<string, unknown> = { ...basePrompt };
-        if (
-          (tmpl.type === "graded_reading" ||
-            tmpl.type === "comprehension" ||
-            tmpl.type === "matching") &&
-          !basePrompt.imageUrl
-        ) {
-          promptWithImage.imageUrl = coverForLevel(levelCode);
+        for (let idx = existingExercises.length; idx < thematicItems.length; idx++) {
+          const item = thematicItems[idx]!;
+          await prisma.exercise.create({
+            data: {
+              lessonId: lesson.id,
+              type: item.type as never,
+              difficulty: item.difficulty,
+              prompt: item.prompt as never,
+              solution: item.solution as never,
+              aiGenerated: false,
+            },
+          });
         }
-        // flashcard already has local path via template; ensure picsum only as fallback handled in renderer
-        if (
-          tmpl.type === "flashcard" &&
-          typeof basePrompt.imageUrl === "string" &&
-          (basePrompt.imageUrl as string).includes("picsum.photos")
-        ) {
-          // keep as is; renderer will fallback to local placeholder onError
+      } else {
+        // existing >= expected: if poor or over-count, realign first N to thematic; trim excess if any
+        let poorCount = 0;
+        for (const ex of existingExercises) {
+          const prompt = (ex.prompt ?? {}) as Record<string, unknown>;
+          if (!promptContainsLessonWord(prompt, lessonWords)) poorCount++;
         }
-        await prisma.exercise.create({
-          data: {
-            lessonId: lesson.id,
-            type: tmpl.type as never,
-            difficulty: tmpl.difficulty,
-            prompt: promptWithImage as never,
-            solution: tmpl.solution as never,
-            aiGenerated: false,
-          },
-        });
+        const isOver = existingExercises.length > thematicItems.length;
+        if (poorCount > 0 || isOver) {
+          // Deterministic realignment: update first thematicItems.length exercises to thematic
+          for (let idx = 0; idx < thematicItems.length; idx++) {
+            const ex = existingExercises[idx]!;
+            const thematic = thematicItems[idx]!;
+            const prompt = (ex.prompt ?? {}) as Record<string, unknown>;
+            const isPoor = !promptContainsLessonWord(prompt, lessonWords);
+            // update if poor or if type/difficulty drifted (ensures C=5 B=4 A=3 perTeach alignment)
+            const needsUpdate =
+              isPoor ||
+              ex.type !== thematic.type ||
+              (ex as unknown as { difficulty: number }).difficulty !== thematic.difficulty;
+            if (needsUpdate) {
+              try {
+                await prisma.exercise.update({
+                  where: { id: ex.id },
+                  data: {
+                    type: thematic.type as never,
+                    difficulty: thematic.difficulty,
+                    prompt: thematic.prompt as never,
+                    solution: thematic.solution as never,
+                  },
+                });
+              } catch {}
+            }
+          }
+          // Delete surplus exercises to keep idempotent count (if over)
+          if (isOver) {
+            const surplus = existingExercises.slice(thematicItems.length);
+            for (const ex of surplus) {
+              try {
+                await prisma.exercise.delete({ where: { id: ex.id } });
+              } catch {}
+            }
+          }
+        } else {
+          // Count correct and thematic — only backfill missing imageUrl if needed
+          for (const ex of existingExercises) {
+            const prompt = (ex.prompt ?? {}) as Record<string, unknown>;
+            if (
+              (ex.type === "graded_reading" ||
+                ex.type === "comprehension" ||
+                ex.type === "matching") &&
+              !prompt.imageUrl
+            ) {
+              try {
+                await prisma.exercise.update({
+                  where: { id: ex.id },
+                  data: {
+                    prompt: {
+                      ...prompt,
+                      imageUrl: "/lesson-images/teaching-placeholder.png",
+                    } as never,
+                  },
+                });
+              } catch {}
+            }
+            if (
+              ex.type === "flashcard" &&
+              typeof prompt.imageUrl === "string" &&
+              (prompt.imageUrl as string).includes("picsum.photos")
+            ) {
+              const front = String((prompt.front as string) ?? lessonWords[0] ?? "apple");
+              const local = flashcardLocalPath(front.toLowerCase());
+              try {
+                await prisma.exercise.update({
+                  where: { id: ex.id },
+                  data: { prompt: { ...prompt, imageUrl: local } as never },
+                });
+              } catch {}
+            }
+          }
+        }
       }
     }
   }
@@ -2242,30 +2703,132 @@ async function seedLevel(levelCode: string) {
       } catch {}
     }
   }
-  if ((await prisma.exercise.count({ where: { lessonId: examLesson.id } })) === 0) {
-    for (let i = 0; i < 5; i++) {
-      const tmpl = templates[i % templates.length]!;
-      const p = tmpl.prompt as Record<string, unknown>;
-      const withImg =
-        (tmpl.type === "graded_reading" ||
-          tmpl.type === "comprehension" ||
-          tmpl.type === "matching") &&
-        !p.imageUrl
-          ? { ...p, imageUrl: coverForLevel(levelCode) }
-          : p;
-      await prisma.exercise.create({
-        data: {
-          lessonId: examLesson.id,
-          type: tmpl.type as never,
-          difficulty: levelCode.startsWith("C") ? 5 : levelCode.startsWith("B") ? 4 : 3,
-          prompt: withImg as never,
-          solution: tmpl.solution as never,
-        },
-      });
+  // Thematic exam — aligned to accumulated vocab/phrases + perExam count
+  {
+    const examWords = getAccumulatedVocab(levelCode, UNITS_PER_LEVEL);
+    const examPhrases: string[] = [];
+    for (let pu = 1; pu <= UNITS_PER_LEVEL; pu++) {
+      const k = `${levelCode}-${pu}`;
+      if (UNIT_PHRASES[k]?.en) examPhrases.push(...UNIT_PHRASES[k]!.en);
+    }
+    const safeExamWords = examWords.length
+      ? examWords
+      : (UNIT_VOCAB[`${levelCode}-1`] ?? ["hello"]);
+    const safeExamPhrases = examPhrases.length ? examPhrases : ["Final review"];
+    const thematicExam = buildThematicExercisesForLesson({
+      levelCode,
+      unitIndex: 99,
+      lessonIndex: 1,
+      kind: "exam",
+      lessonWords: safeExamWords,
+      phrasesEn: safeExamPhrases,
+      difficulty,
+      perCount: perExam,
+    });
+    const existingExam = await prisma.exercise.findMany({
+      where: { lessonId: examLesson.id },
+      orderBy: { id: "asc" },
+    });
+    const containsWord = (prompt: unknown, words: string[]) => {
+      const hay = JSON.stringify(prompt ?? "").toLowerCase();
+      return words.some((w) => hay.includes(w.toLowerCase()));
+    };
+    if (existingExam.length === 0) {
+      for (const item of thematicExam) {
+        await prisma.exercise.create({
+          data: {
+            lessonId: examLesson.id,
+            type: item.type as never,
+            difficulty: item.difficulty,
+            prompt: item.prompt as never,
+            solution: item.solution as never,
+          },
+        });
+      }
+    } else if (existingExam.length < thematicExam.length) {
+      let poor = 0;
+      for (let i = 0; i < existingExam.length; i++) {
+        if (
+          !containsWord((existingExam[i] as unknown as { prompt: unknown }).prompt, safeExamWords)
+        )
+          poor++;
+      }
+      if (poor > 0) {
+        for (let i = 0; i < existingExam.length; i++) {
+          const ex = existingExam[i]!;
+          if (!containsWord((ex as unknown as { prompt: unknown }).prompt, safeExamWords)) {
+            const th = thematicExam[i]!;
+            try {
+              await prisma.exercise.update({
+                where: { id: ex.id },
+                data: {
+                  type: th.type as never,
+                  difficulty: th.difficulty,
+                  prompt: th.prompt as never,
+                  solution: th.solution as never,
+                },
+              });
+            } catch {}
+          }
+        }
+      }
+      for (let i = existingExam.length; i < thematicExam.length; i++) {
+        const item = thematicExam[i]!;
+        await prisma.exercise.create({
+          data: {
+            lessonId: examLesson.id,
+            type: item.type as never,
+            difficulty: item.difficulty,
+            prompt: item.prompt as never,
+            solution: item.solution as never,
+          },
+        });
+      }
+    } else {
+      let poorCount = 0;
+      for (const ex of existingExam) {
+        if (!containsWord((ex as unknown as { prompt: unknown }).prompt, safeExamWords))
+          poorCount++;
+      }
+      const isOver = existingExam.length > thematicExam.length;
+      if (poorCount > 0 || isOver) {
+        for (let i = 0; i < thematicExam.length; i++) {
+          const ex = existingExam[i]!;
+          const th = thematicExam[i]!;
+          const isPoor = !containsWord(
+            (ex as unknown as { prompt: unknown }).prompt,
+            safeExamWords,
+          );
+          const needsUpdate =
+            isPoor ||
+            ex.type !== th.type ||
+            (ex as unknown as { difficulty: number }).difficulty !== th.difficulty;
+          if (needsUpdate) {
+            try {
+              await prisma.exercise.update({
+                where: { id: ex.id },
+                data: {
+                  type: th.type as never,
+                  difficulty: th.difficulty,
+                  prompt: th.prompt as never,
+                  solution: th.solution as never,
+                },
+              });
+            } catch {}
+          }
+        }
+        if (isOver) {
+          for (const ex of existingExam.slice(thematicExam.length)) {
+            try {
+              await prisma.exercise.delete({ where: { id: (ex as unknown as { id: string }).id } });
+            } catch {}
+          }
+        }
+      }
     }
   }
   console.log(`  <- done ${levelCode}`);
-  // Optional second exam for C levels
+  // Optional second exam for C levels — thematic, idempotent
   if (levelCode.startsWith("C")) {
     let examLesson2 = await prisma.lesson.findFirst({
       where: { unitId: examUnit.id, orderIndex: 2 },
@@ -2299,25 +2862,121 @@ async function seedLevel(levelCode: string) {
           },
         });
       }
-      for (let i = 0; i < 5; i++) {
-        const tmpl = templates[(5 + i) % templates.length]!;
-        const p = tmpl.prompt as Record<string, unknown>;
-        const withImg =
-          (tmpl.type === "graded_reading" ||
-            tmpl.type === "comprehension" ||
-            tmpl.type === "matching") &&
-          !p.imageUrl
-            ? { ...p, imageUrl: coverForLevel(levelCode) }
-            : p;
-        await prisma.exercise.create({
-          data: {
-            lessonId: examLesson2.id,
-            type: tmpl.type as never,
-            difficulty: 5,
-            prompt: withImg as never,
-            solution: tmpl.solution as never,
-          },
-        });
+    }
+    // Ensure thematic exercises for part 2 (even if lesson already existed)
+    {
+      const examWords2 = getAccumulatedVocab(levelCode, UNITS_PER_LEVEL);
+      const examPhrases2: string[] = [];
+      for (let pu = 1; pu <= UNITS_PER_LEVEL; pu++) {
+        const k = `${levelCode}-${pu}`;
+        if (UNIT_PHRASES[k]?.en) examPhrases2.push(...UNIT_PHRASES[k]!.en);
+      }
+      const safeWords2 = examWords2.length
+        ? examWords2
+        : (UNIT_VOCAB[`${levelCode}-1`] ?? ["hello"]);
+      const safePhrases2 = examPhrases2.length ? examPhrases2 : ["Final review part 2"];
+      const thematicExam2 = buildThematicExercisesForLesson({
+        levelCode,
+        unitIndex: 99,
+        lessonIndex: 2,
+        kind: "exam",
+        lessonWords: safeWords2,
+        phrasesEn: safePhrases2,
+        difficulty,
+        perCount: perExam,
+      });
+      const existing2 = await prisma.exercise.findMany({
+        where: { lessonId: examLesson2.id },
+        orderBy: { id: "asc" },
+      });
+      const containsWord2 = (prompt: unknown, words: string[]) => {
+        const hay = JSON.stringify(prompt ?? "").toLowerCase();
+        return words.some((w) => hay.includes(w.toLowerCase()));
+      };
+      if (existing2.length === 0) {
+        for (const item of thematicExam2) {
+          await prisma.exercise.create({
+            data: {
+              lessonId: examLesson2.id,
+              type: item.type as never,
+              difficulty: item.difficulty,
+              prompt: item.prompt as never,
+              solution: item.solution as never,
+            },
+          });
+        }
+      } else if (existing2.length < thematicExam2.length) {
+        for (let i = 0; i < existing2.length; i++) {
+          if (!containsWord2((existing2[i] as unknown as { prompt: unknown }).prompt, safeWords2)) {
+            const th = thematicExam2[i]!;
+            try {
+              await prisma.exercise.update({
+                where: { id: (existing2[i] as unknown as { id: string }).id },
+                data: {
+                  type: th.type as never,
+                  difficulty: th.difficulty,
+                  prompt: th.prompt as never,
+                  solution: th.solution as never,
+                },
+              });
+            } catch {}
+          }
+        }
+        for (let i = existing2.length; i < thematicExam2.length; i++) {
+          const item = thematicExam2[i]!;
+          await prisma.exercise.create({
+            data: {
+              lessonId: examLesson2.id,
+              type: item.type as never,
+              difficulty: item.difficulty,
+              prompt: item.prompt as never,
+              solution: item.solution as never,
+            },
+          });
+        }
+      } else {
+        let poorCount2 = 0;
+        for (const ex of existing2) {
+          if (!containsWord2((ex as unknown as { prompt: unknown }).prompt, safeWords2))
+            poorCount2++;
+        }
+        const isOver2 = existing2.length > thematicExam2.length;
+        if (poorCount2 > 0 || isOver2) {
+          for (let i = 0; i < thematicExam2.length; i++) {
+            const ex = existing2[i]!;
+            const th = thematicExam2[i]!;
+            const isPoor = !containsWord2(
+              (ex as unknown as { prompt: unknown }).prompt,
+              safeWords2,
+            );
+            const needsUpdate =
+              isPoor ||
+              ex.type !== th.type ||
+              (ex as unknown as { difficulty: number }).difficulty !== th.difficulty;
+            if (needsUpdate) {
+              try {
+                await prisma.exercise.update({
+                  where: { id: (ex as unknown as { id: string }).id },
+                  data: {
+                    type: th.type as never,
+                    difficulty: th.difficulty,
+                    prompt: th.prompt as never,
+                    solution: th.solution as never,
+                  },
+                });
+              } catch {}
+            }
+          }
+          if (isOver2) {
+            for (const ex of existing2.slice(thematicExam2.length)) {
+              try {
+                await prisma.exercise.delete({
+                  where: { id: (ex as unknown as { id: string }).id },
+                });
+              } catch {}
+            }
+          }
+        }
       }
     }
   }
