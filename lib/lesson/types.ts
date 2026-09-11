@@ -19,6 +19,9 @@ export type LessonContentBlock =
         definitionEs?: string;
         example?: string;
         exampleEs?: string;
+        /** IPA delimited by slashes e.g. /həˈloʊ/ — nullable for legacy compat */
+        ipa?: string | null;
+        pos?: string;
       }[];
     }
   | {

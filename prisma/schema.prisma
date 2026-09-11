@@ -165,21 +165,25 @@ model Lesson {
 }
 
 model Exercise {
-  id          String       @id @default(uuid()) @db.Uuid
-  lessonId    String       @map("lesson_id") @db.Uuid
-  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  type        ExerciseType
-  difficulty  Int          @default(2)
-  prompt      Json
-  solution    Json
-  assets      Json?
-  aiGenerated Boolean      @default(false) @map("ai_generated")
-  version     Int          @default(1)
-  createdAt   DateTime     @default(now()) @map("created_at")
-  attempts    Attempt[]
-  srsCards    SrsCard[]
+  id             String       @id @default(uuid()) @db.Uuid
+  lessonId       String       @map("lesson_id") @db.Uuid
+  lesson         Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type           ExerciseType
+  difficulty     Int          @default(2)
+  prompt         Json
+  solution       Json
+  assets         Json?
+  aiGenerated    Boolean      @default(false) @map("ai_generated")
+  version        Int          @default(1)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  // PRD strict evaluation support (nullable for legacy compat)
+  category       String?      @map("category")
+  evaluationSlot Int?         @map("evaluation_slot")
+  attempts       Attempt[]
+  srsCards       SrsCard[]
 
   @@index([lessonId, type])
+  @@index([category])
   @@map("exercises")
 }
 
