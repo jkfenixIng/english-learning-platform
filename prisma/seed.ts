@@ -1,6 +1,26 @@
 import { PrismaClient } from "@prisma/client";
+import { getCurriculumMode } from "../lib/curriculum/config.js";
+import { generateLessons } from "../lib/curriculum/lessonGenerator.js";
+import { generateQuizzes } from "../lib/curriculum/quizGenerator.js";
+import { canonicalForLesson } from "../lib/curriculum/imageNaming.js";
 
 const prisma = new PrismaClient();
+
+// --- PRD strict helpers: arg parsing, id parsing, seed ---
+function parseArgsSeed(): { mode: string | undefined; seed: number | undefined } {
+  const a = process.argv.slice(2);
+  const mi = a.indexOf("--mode");
+  const si = a.indexOf("--seed");
+  const mode = mi !== -1 ? a[mi + 1] : undefined;
+  const seedRaw = si !== -1 ? a[si + 1] : undefined;
+  const seed = seedRaw !== undefined ? Number(seedRaw) : undefined;
+  return { mode, seed };
+}
+function parsePrdId(id: string): { level: string; mod: number; les: number } {
+  const m = /^([a-c][12])_m([1-4])_l([1-3])$/.exec(id);
+  if (!m) throw new Error(`INVALID_LESSON_ID ${id}`);
+  return { level: m[1]!.toUpperCase(), mod: Number(m[2]), les: Number(m[3]) };
+}
 
 // --- Helpers for Lesson model (kind/content/coverImage)
 function picsum(seed: string, w = 600, h = 340): string {
@@ -2982,9 +3002,177 @@ async function seedLevel(levelCode: string) {
   }
 }
 
+async function seedPrdStrict(seed: number) {
+  console.log(`[seed] PRD strict mode seed=${seed} — generating 72 lessons + 72 quizzes`);
+  const lessons = generateLessons(seed);
+  const quizzes = generateQuizzes(lessons, seed);
+  const quizByLesson = new Map(quizzes.map((q) => [q.lessonId, q]));
+  for (const dto of lessons) {
+    const { level, mod, les } = parsePrdId(dto.id_leccion);
+    const levelRec = await prisma.level.upsert({
+      where: { code: level as never },
+      update: {},
+      create: {
+        code: level as never,
+        title: `${level} Level`,
+        description: `CEFR ${level}`,
+        orderIndex: ["A1", "A2", "B1", "B2", "C1", "C2"].indexOf(level) + 1,
+      },
+    });
+    // unit/module upsert by levelId+orderIndex
+    const themeEn = dto.titulo.en.split(":").slice(1).join(":").trim() || `Module ${mod}`;
+    let unit = await prisma.unit.findFirst({ where: { levelId: levelRec.id, orderIndex: mod } });
+    if (!unit) {
+      unit = await prisma.unit.create({
+        data: {
+          levelId: levelRec.id,
+          title: `${level} Module ${mod}`,
+          description: themeEn,
+          orderIndex: mod,
+          coverImage: `/lesson-images/${canonicalForLesson(dto.id_leccion)}`,
+        } as never,
+      });
+    } else {
+      try {
+        await prisma.unit.update({
+          where: { id: unit.id },
+          data: { coverImage: `/lesson-images/${canonicalForLesson(dto.id_leccion)}` } as never,
+        });
+      } catch {}
+    }
+    // lesson upsert by unitId+orderIndex (maps to id_leccion)
+    let lesson = await prisma.lesson.findFirst({ where: { unitId: unit.id, orderIndex: les } });
+    const cover = `/lesson-images/${dto.ilustraciones_asociadas[0] ?? canonicalForLesson(dto.id_leccion)}`;
+    // content mirrors LessonDTO for teaching rendering
+    const content: unknown = {
+      blocks: [
+        { type: "heading", text: dto.titulo.en, textEs: dto.titulo.es, level: 2 },
+        { type: "paragraph", text: dto.objetivo, textEs: dto.objetivo },
+        { type: "paragraph", text: dto.explicacion_gramatical, textEs: dto.explicacion_gramatical },
+        {
+          type: "image",
+          url: cover,
+          alt: `${level} M${mod} L${les} illustration`,
+          altEs: `${level} M${mod} L${les} ilustración`,
+          caption: dto.titulo.en,
+          captionEs: dto.titulo.es,
+        },
+        { type: "vocab", items: dto.vocabulario_clave },
+        {
+          type: "list",
+          items: dto.vocabulario_clave.map((v) => v.word),
+          itemsEs: dto.vocabulario_clave.map((v) => v.word),
+          ordered: false,
+        },
+      ],
+    };
+    if (!lesson) {
+      lesson = await prisma.lesson.create({
+        data: {
+          unitId: unit.id,
+          title: dto.titulo.en,
+          objectives: dto.objetivo,
+          orderIndex: les,
+          estimatedMinutes: level.startsWith("C") ? 20 : level.startsWith("B") ? 15 : 10,
+          kind: "teach" as never,
+          coverImage: cover,
+          content: content as never,
+        } as never,
+      });
+    } else {
+      try {
+        await prisma.lesson.update({
+          where: { id: lesson.id },
+          data: {
+            title: dto.titulo.en,
+            objectives: dto.objetivo,
+            coverImage: cover,
+            content: content as never,
+            kind: "teach" as never,
+          } as never,
+        });
+      } catch {}
+    }
+    // quiz exercises idempotent by lessonId (delete surplus then upsert 5)
+    const quiz = quizByLesson.get(dto.id_leccion);
+    if (quiz) {
+      const existing = await prisma.exercise.findMany({
+        where: { lessonId: lesson.id },
+        orderBy: { id: "asc" },
+      });
+      // keep first 5 as quiz questions (prd_strict lessons have exactly 5 quiz exercises)
+      // remove if more than 5 or legacy shape mismatch
+      if (existing.length !== 5) {
+        for (const ex of existing)
+          try {
+            await prisma.exercise.delete({ where: { id: ex.id } });
+          } catch {}
+        for (let i = 0; i < quiz.questions.length; i++) {
+          const q = quiz.questions[i]!;
+          const prompt: Record<string, unknown> = {
+            prompt: q.prompt,
+            options: (q as unknown as { options?: unknown }).options,
+            imageUrl: (q as unknown as { image_ref?: string }).image_ref
+              ? `/lesson-images/${(q as unknown as { image_ref: string }).image_ref}`
+              : undefined,
+          };
+          await prisma.exercise.create({
+            data: {
+              lessonId: lesson.id,
+              type: q.type as never,
+              difficulty: 2,
+              prompt: prompt as never,
+              solution: { answer: (q as unknown as { answer?: string }).answer } as never,
+            } as never,
+          });
+        }
+      } else {
+        // update in place to keep idempotent
+        for (let i = 0; i < 5; i++) {
+          const q = quiz.questions[i]!;
+          const ex = existing[i]!;
+          try {
+            await prisma.exercise.update({
+              where: { id: ex.id },
+              data: {
+                type: q.type as never,
+                prompt: {
+                  prompt: q.prompt,
+                  options: (q as unknown as { options?: unknown }).options,
+                  imageUrl: (q as unknown as { image_ref?: string }).image_ref
+                    ? `/lesson-images/${(q as unknown as { image_ref: string }).image_ref}`
+                    : undefined,
+                } as never,
+                solution: { answer: (q as unknown as { answer?: string }).answer } as never,
+              } as never,
+            });
+          } catch {}
+        }
+      }
+    }
+  }
+  // prune legacy units 5,6,99 so count =72
+  for (const code of ["A1", "A2", "B1", "B2", "C1", "C2"] as const) {
+    const lvl = await prisma.level.findFirst({ where: { code: code as never } });
+    if (!lvl) continue;
+    try {
+      await prisma.unit.deleteMany({ where: { levelId: lvl.id, orderIndex: { gt: 4 } } });
+    } catch {}
+    // also delete units beyond 4 that might have been created as 99 exam — already covered by gt 4
+  }
+  console.log(`[seed] prd_strict done lessons=${lessons.length} quizzes=${quizzes.length}`);
+}
+
 async function main() {
-  console.log("Seeding A1..C2 (enriched 6 units x 5 lessons)...");
-  for (const code of ["A1", "A2", "B1", "B2", "C1", "C2"] as const) await seedLevel(code);
+  const { mode: argMode, seed: argSeed } = parseArgsSeed();
+  const mode = getCurriculumMode(argMode);
+  const seed = argSeed ?? Number(process.env.CURRICULUM_SEED ?? 42);
+  if (mode === "prd_strict") {
+    await seedPrdStrict(seed);
+  } else {
+    console.log("Seeding A1..C2 (enriched 6 units x 5 lessons)...");
+    for (const code of ["A1", "A2", "B1", "B2", "C1", "C2"] as const) await seedLevel(code);
+  }
 
   // Badges B-level + C-level informal certificates
   const badges = [
