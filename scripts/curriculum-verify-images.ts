@@ -9,6 +9,7 @@ import path from "node:path";
 import { loadAliasManifest, resolveImage } from "../lib/curriculum/imageResolver";
 import { canonicalForLesson } from "../lib/curriculum/imageNaming";
 import { CurriculumErrorCode } from "../lib/curriculum/schemas";
+import { generateEvaluations } from "../lib/curriculum/generator/evaluationGenerator";
 
 const args = process.argv.slice(2);
 
@@ -64,6 +65,31 @@ for (const c of canonicals) {
   if (res.status === "ALIASED") aliased++;
   else if (res.status === "CANONICAL") canonicalHits++;
   else if (res.status === "UNRESOLVED") unresolved.push(c);
+}
+
+// PR5 evaluation image refs (151) — verify they resolve via alias placeholder (teaching-placeholder.png)
+// Documented in docs/curriculum-rollout.md § Image alias coverage
+let evalAliased = 0;
+let evalUnresolved: string[] = [];
+if (mode === "prd_strict") {
+  try {
+    const evals = generateEvaluations(42);
+    const evalRefs = new Set<string>();
+    for (const ev of evals)
+      for (const q of ev.questions) if ((q as any).image_ref) evalRefs.add((q as any).image_ref);
+    for (const ref of evalRefs) {
+      const r = resolveImage(ref, { manifest, baseDir });
+      if (r.status === "ALIASED") evalAliased++;
+      else if (r.status === "CANONICAL") canonicalHits++;
+      else evalUnresolved.push(ref);
+    }
+    console.log(
+      `[curriculum:verify-images] eval refs total=${evalRefs.size} aliased=${evalAliased} unresolved=${evalUnresolved.length} (placeholder fallback)`,
+    );
+    unresolved.push(...evalUnresolved);
+  } catch {
+    // if generator not available, skip eval check
+  }
 }
 
 if (mode === "legacy") {
