@@ -4,7 +4,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { generateLessons } from "../lib/curriculum/lessonGenerator.js";
 import { generateQuizzes } from "../lib/curriculum/quizGenerator.js";
-import { LessonSchema, QuizSchema, assertCurriculumCounts } from "../lib/curriculum/schemas.js";
+import { generateEvaluations } from "../lib/curriculum/evaluationGenerator.js";
+import {
+  LessonSchema,
+  QuizSchema,
+  EvaluationSchema,
+  assertCurriculumCounts,
+  assertEvaluationDistribution,
+} from "../lib/curriculum/schemas.js";
 
 function parseArgs() {
   const a = process.argv.slice(2);
@@ -47,6 +54,7 @@ if (mode === "legacy") {
 
 const lessons = generateLessons(seed);
 const quizzes = generateQuizzes(lessons, seed);
+const evaluations = generateEvaluations(seed);
 
 // Zod validation
 let zodErrors = 0;
@@ -64,6 +72,19 @@ for (const q of quizzes) {
     console.error(`[validate] quiz ${q.lessonId} failed`, r.error.issues[0]?.message);
   }
 }
+for (const e of evaluations) {
+  const r = EvaluationSchema.safeParse(e);
+  if (!r.success) {
+    zodErrors++;
+    console.error(`[validate] evaluation ${e.moduleId} failed`, r.error.issues[0]?.message);
+  }
+  try {
+    assertEvaluationDistribution(e.questions);
+  } catch (err) {
+    zodErrors++;
+    console.error(`[validate] ${e.moduleId} distribution`, String(err));
+  }
+}
 if (zodErrors) {
   console.error(`[curriculum:generate] validation failed ${zodErrors} errors`);
   process.exit(1);
@@ -71,19 +92,19 @@ if (zodErrors) {
 
 // counts guard
 try {
-  assertCurriculumCounts({ lessons: lessons.length, quizzes: quizzes.length, evaluations: 24 });
+  assertCurriculumCounts({
+    lessons: lessons.length,
+    quizzes: quizzes.length,
+    evaluations: evaluations.length,
+  });
 } catch (e) {
-  // PR4 only has lessons/quizzes, evaluations are 0 until PR5 — so check 72/72 only
-  if (lessons.length !== 72 || quizzes.length !== 72) {
-    console.error(String(e));
-    console.error(
-      `[curriculum:generate] counts lessons=${lessons.length} quizzes=${quizzes.length} expected 72/72`,
-    );
-    process.exit(1);
-  }
+  console.error(String(e));
+  process.exit(1);
 }
-if (lessons.length !== 72 || quizzes.length !== 72) {
-  console.error(`CURRICULUM_COUNT_MISMATCH lessons=${lessons.length} quizzes=${quizzes.length}`);
+if (lessons.length !== 72 || quizzes.length !== 72 || evaluations.length !== 24) {
+  console.error(
+    `CURRICULUM_COUNT_MISMATCH lessons=${lessons.length} quizzes=${quizzes.length} evaluations=${evaluations.length}`,
+  );
   process.exit(1);
 }
 // quiz 5Q guard
@@ -92,12 +113,28 @@ for (const q of quizzes)
     console.error(`quiz ${q.lessonId} has ${q.questions.length} not 5`);
     process.exit(1);
   }
+// evaluation 15Q 4/6/5 guard (redundant with Zod but explicit per-category report)
+for (const e of evaluations) {
+  const c = { reading: 0, grammar_vocab: 0, listening: 0 };
+  for (const qq of e.questions) c[qq.category as keyof typeof c]++;
+  if (c.reading !== 4 || c.grammar_vocab !== 6 || c.listening !== 5) {
+    console.error(
+      `[curriculum:generate] ${e.moduleId} 4/6/5 mismatch ${c.reading}/${c.grammar_vocab}/${c.listening}`,
+    );
+    process.exit(1);
+  }
+}
 
 // hash stable
-const payload = JSON.stringify({ lessons, quizzes });
+const payload = JSON.stringify({ lessons, quizzes, evaluations });
 const hash = crypto.createHash("sha256").update(payload).digest("hex").slice(0, 16);
+const breakdown = (() => {
+  const cc = { reading: 0, grammar_vocab: 0, listening: 0 };
+  for (const e of evaluations) for (const q of e.questions) cc[q.category as keyof typeof cc]++;
+  return `${cc.reading}/${cc.grammar_vocab}/${cc.listening}`;
+})();
 console.log(
-  `[curriculum:generate] mode=${mode} seed=${seed} lessons=${lessons.length} quizzes=${quizzes.length} hash=${hash} zod=ok`,
+  `[curriculum:generate] mode=${mode} seed=${seed} lessons=${lessons.length} quizzes=${quizzes.length} evaluations=${evaluations.length} breakdown=${breakdown} each=4/6/5 hash=${hash} zod=ok`,
 );
 
 // optional out
@@ -106,7 +143,7 @@ if (out) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(
     path.resolve(out),
-    JSON.stringify({ lessons, quizzes, hash, seed, mode }, null, 2),
+    JSON.stringify({ lessons, quizzes, evaluations, hash, seed, mode }, null, 2),
   );
   console.log(`[curriculum:generate] wrote ${out}`);
 }

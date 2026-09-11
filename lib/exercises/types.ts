@@ -30,6 +30,20 @@ export interface ExerciseAssets {
   images?: ExerciseImageAsset[];
 }
 
+export type ExerciseCategory = "reading" | "grammar_vocab" | "listening";
+export const EXERCISE_CATEGORIES = ["reading", "grammar_vocab", "listening"] as const;
+
+export function isExerciseCategory(v: string): v is ExerciseCategory {
+  return (EXERCISE_CATEGORIES as readonly string[]).includes(v);
+}
+
+// Category -> allowed ExerciseType mapping (REQ-EVA-001)
+export const CATEGORY_EXERCISE_MAP: Record<ExerciseCategory, readonly ExerciseType[]> = {
+  reading: ["comprehension", "graded_reading"],
+  grammar_vocab: ["fill_blanks", "matching", "transformation", "flashcard"],
+  listening: ["listening_tts", "dictation", "shadowing", "pronunciation"],
+} as const;
+
 export interface ExercisePlugin<TPrompt = unknown, TAnswer = unknown> {
   type: ExerciseType;
   promptSchema: import("zod").ZodType<TPrompt>;
