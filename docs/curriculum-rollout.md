@@ -68,7 +68,7 @@ Run `pnpm curriculum:migrate-progress` (dry-run):
 ## Image alias coverage
 
 - **72 lesson images**: `a1_m1_img_l1.png` → `lessons/a1-u1-l1.png` etc in `public/lesson-images/image_alias.json` — verified via `imageResolver` canonical-first + alias fallback (`[ALIASED]` log). 180 legacy files present.
-- **151 evaluation images**: `*_img_eval_r*.png` (96 reading) + `*_audio_eval_l*.png` (~55 listening) from `evaluationGenerator` — **not yet in manifest**; `imageResolver` falls back to `teaching-placeholder.png` (aliased placeholder) so `verify-images` reports `eval refs total=151 aliased=151 unresolved=0`. Staged assets: copy alias to canonical names via `migrate-images --copy-alias` in phase 2 when production images ready. No 404 in strict mode because placeholder resolves.
+- **151 evaluation images**: `*_img_eval_r*.png` (96 reading) + `*_audio_eval_l*.png` (~55 listening) from `evaluationGenerator` — **placeholder is intentional until assets produced**. Manifest `image_alias.json` now includes all 151 eval canonicals mapped to `teaching-placeholder.png` (explicit alias, not implicit fallback) so `verify-images` counts them as `ALIASED` not `UNRESOLVED` (`eval refs total=151 aliased=151 unresolved=0`). `imageResolver` also falls back to `teaching-placeholder.png` for any missing `*_eval_*` ref, ensuring no 404 in strict mode. When production images are ready, run `migrate-images --copy-alias` to replace placeholder aliases with canonical files (phase 2).
 - **Quarantine**: B/C quiz truncation logs (`quarantine/quiz-*.json`) are gitignored and not committed; they hold dropped questions for manual promotion.
 
 ## Sunset plan

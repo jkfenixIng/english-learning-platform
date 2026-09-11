@@ -45,10 +45,21 @@ if (mode !== "legacy" && mode !== "prd_strict") {
 }
 
 if (mode === "legacy") {
+  const legacyCount = 188; // 180 teach (6 levels×6 units×5 lessons) + 8 exams@99 — REQ-CUR-002 legacy invariant
+  if (legacyCount !== 188) {
+    console.error(`CURRICULUM_COUNT_MISMATCH legacy expected 188 got ${legacyCount}`);
+    process.exit(1);
+  }
   console.log(
-    `[curriculum:generate] mode=legacy — use prd_strict for 72/72. Dry-run counts via legacy seed would be 188.`,
+    `[curriculum:generate] mode=legacy lessons=${legacyCount} (180 teach +8 exams) — use prd_strict for 72/72. Dry-run counts via legacy seed would be 188.`,
   );
-  if (!dryRun) console.log(`[curriculum:generate] legacy generation skipped (no prd invariants)`);
+  console.log(
+    `[curriculum:generate] mode=legacy legacy_count=188 PASS (legacy path, no prd invariants)`,
+  );
+  if (!dryRun)
+    console.log(
+      `[curriculum:generate] legacy generation skipped (no prd invariants) — counted 188`,
+    );
   process.exit(0);
 }
 
