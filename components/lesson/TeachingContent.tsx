@@ -93,7 +93,17 @@ function BlockRenderer({ block, locale }: { block: LessonContentBlock; locale: s
           <div className="grid gap-2 sm:grid-cols-2">
             {vb.items.map((item) => (
               <div key={item.word} className="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-900">
-                <p className="text-sm font-semibold">{item.word}</p>
+                <p className="text-sm font-semibold">
+                  {item.word}
+                  {typeof item.ipa === "string" && /^\/.+\/$/.test(item.ipa) ? (
+                    <span className="ml-2 font-mono text-xs font-normal text-slate-500 dark:text-slate-400">
+                      {item.ipa}
+                    </span>
+                  ) : null}
+                  {item.pos ? (
+                    <span className="ml-1 text-xs font-normal text-slate-400">· {item.pos}</span>
+                  ) : null}
+                </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{item.definition}</p>
                 {item.example ? (
                   <p className="mt-1 text-xs text-gray-500 italic">“{item.example}”</p>
