@@ -3120,10 +3120,18 @@ async function seedPrdStrict(seed: number) {
               ? `/lesson-images/${(q as unknown as { image_ref: string }).image_ref}`
               : undefined,
           };
+          const mapQuizType = (t: string) =>
+            t === "multiple_choice"
+              ? "matching"
+              : t === "fill_blank"
+                ? "fill_blanks"
+                : t === "visual"
+                  ? "flashcard"
+                  : t;
           await prisma.exercise.create({
             data: {
               lessonId: lesson.id,
-              type: q.type as never,
+              type: mapQuizType(q.type) as never,
               difficulty: 2,
               prompt: prompt as never,
               solution: { answer: (q as unknown as { answer?: string }).answer } as never,
@@ -3135,11 +3143,19 @@ async function seedPrdStrict(seed: number) {
         for (let i = 0; i < 5; i++) {
           const q = quiz.questions[i]!;
           const ex = existing[i]!;
+          const mapQuizType = (t: string) =>
+            t === "multiple_choice"
+              ? "matching"
+              : t === "fill_blank"
+                ? "fill_blanks"
+                : t === "visual"
+                  ? "flashcard"
+                  : t;
           try {
             await prisma.exercise.update({
               where: { id: ex.id },
               data: {
-                type: q.type as never,
+                type: mapQuizType(q.type) as never,
                 prompt: {
                   prompt: q.prompt,
                   options: (q as unknown as { options?: unknown }).options,
