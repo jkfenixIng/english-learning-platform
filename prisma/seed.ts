@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { getCurriculumMode } from "../lib/curriculum/config.js";
 import { generateLessons } from "../lib/curriculum/lessonGenerator.js";
 import { generateQuizzes } from "../lib/curriculum/quizGenerator.js";
+import { generateEvaluations } from "../lib/curriculum/evaluationGenerator.js";
 import { canonicalForLesson } from "../lib/curriculum/imageNaming.js";
 
 const prisma = new PrismaClient();
@@ -3003,9 +3004,12 @@ async function seedLevel(levelCode: string) {
 }
 
 async function seedPrdStrict(seed: number) {
-  console.log(`[seed] PRD strict mode seed=${seed} — generating 72 lessons + 72 quizzes`);
+  console.log(
+    `[seed] PRD strict mode seed=${seed} — generating 72 lessons + 72 quizzes + 24 evaluations`,
+  );
   const lessons = generateLessons(seed);
   const quizzes = generateQuizzes(lessons, seed);
+  const evaluations = generateEvaluations(seed);
   const quizByLesson = new Map(quizzes.map((q) => [q.lessonId, q]));
   for (const dto of lessons) {
     const { level, mod, les } = parsePrdId(dto.id_leccion);
@@ -3151,16 +3155,113 @@ async function seedPrdStrict(seed: number) {
       }
     }
   }
-  // prune legacy units 5,6,99 so count =72
+  // seed evaluations as Lesson kind=exam orderIndex 4 per module (15Q 4/6/5)
+  for (const ev of evaluations) {
+    const m = /^([a-c][12])_m([1-4])$/.exec(ev.moduleId);
+    if (!m) continue;
+    const lvlCode = m[1]!.toUpperCase();
+    const mod = Number(m[2]);
+    const lvlRec = await prisma.level.findFirst({ where: { code: lvlCode as never } });
+    if (!lvlRec) continue;
+    const unit = await prisma.unit.findFirst({ where: { levelId: lvlRec.id, orderIndex: mod } });
+    if (!unit) continue;
+    let examLesson = await prisma.lesson.findFirst({ where: { unitId: unit.id, orderIndex: 4 } });
+    const examCover = `/lesson-images/${ev.questions.find((q) => (q as unknown as { image_ref?: string }).image_ref)?.image_ref ?? canonicalForLesson(`${ev.moduleId}_l1`)}`;
+    if (!examLesson) {
+      try {
+        examLesson = await prisma.lesson.create({
+          data: {
+            unitId: unit.id,
+            title: `${lvlCode} M${mod} Evaluation`,
+            objectives: `Evaluation for ${lvlCode} Module ${mod}: 15Q (4 reading / 6 grammar_vocab / 5 listening)`,
+            orderIndex: 4,
+            estimatedMinutes: 30,
+            kind: "exam" as never,
+            coverImage: examCover,
+            content: { evaluation: ev.moduleId, distribution: "4/6/5" } as never,
+          } as never,
+        });
+      } catch {
+        examLesson = await prisma.lesson.findFirst({ where: { unitId: unit.id, orderIndex: 4 } });
+        if (!examLesson) continue;
+      }
+    } else {
+      try {
+        await prisma.lesson.update({
+          where: { id: examLesson.id },
+          data: {
+            kind: "exam" as never,
+            coverImage: examCover,
+            title: `${lvlCode} M${mod} Evaluation`,
+          } as never,
+        });
+      } catch {}
+    }
+    const existing = await prisma.exercise.findMany({
+      where: { lessonId: examLesson.id },
+      orderBy: { id: "asc" },
+    });
+    const mapType = (t: string) => (t === "multiple_choice" ? "matching" : t);
+    const shouldRecreate = existing.length !== 15;
+    if (shouldRecreate) {
+      for (const ex of existing)
+        try {
+          await prisma.exercise.delete({ where: { id: ex.id } });
+        } catch {}
+      for (const q of ev.questions) {
+        const prompt: Record<string, unknown> = {
+          prompt: q.prompt,
+          imageUrl: (q as unknown as { image_ref?: string }).image_ref
+            ? `/lesson-images/${(q as unknown as { image_ref: string }).image_ref}`
+            : undefined,
+        };
+        await prisma.exercise.create({
+          data: {
+            lessonId: examLesson.id,
+            type: mapType(q.type) as never,
+            difficulty: q.category === "reading" ? 3 : q.category === "grammar_vocab" ? 2 : 2,
+            prompt: prompt as never,
+            solution: { answer: (q as unknown as { answer?: string }).answer } as never,
+            category: q.category as never,
+            evaluationSlot: (q as unknown as { evaluationSlot?: number }).evaluationSlot as never,
+          } as never,
+        });
+      }
+    } else {
+      for (let i = 0; i < 15; i++) {
+        const q = ev.questions[i]!;
+        const ex = existing[i]!;
+        try {
+          await prisma.exercise.update({
+            where: { id: ex.id },
+            data: {
+              type: mapType(q.type) as never,
+              prompt: {
+                prompt: q.prompt,
+                imageUrl: (q as unknown as { image_ref?: string }).image_ref
+                  ? `/lesson-images/${(q as unknown as { image_ref: string }).image_ref}`
+                  : undefined,
+              } as never,
+              solution: { answer: (q as unknown as { answer?: string }).answer } as never,
+              category: q.category as never,
+              evaluationSlot: (q as unknown as { evaluationSlot?: number }).evaluationSlot as never,
+            } as never,
+          });
+        } catch {}
+      }
+    }
+  }
+  // prune legacy units 5,6,99 so count =72 teach + 24 exams (4 per unit)
   for (const code of ["A1", "A2", "B1", "B2", "C1", "C2"] as const) {
     const lvl = await prisma.level.findFirst({ where: { code: code as never } });
     if (!lvl) continue;
     try {
       await prisma.unit.deleteMany({ where: { levelId: lvl.id, orderIndex: { gt: 4 } } });
     } catch {}
-    // also delete units beyond 4 that might have been created as 99 exam — already covered by gt 4
   }
-  console.log(`[seed] prd_strict done lessons=${lessons.length} quizzes=${quizzes.length}`);
+  console.log(
+    `[seed] prd_strict done lessons=${lessons.length} quizzes=${quizzes.length} evaluations=${evaluations.length}`,
+  );
 }
 
 async function main() {
