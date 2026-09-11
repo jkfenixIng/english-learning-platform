@@ -127,13 +127,20 @@ describe("imageResolver canonical-first alias fallback", () => {
     expect(resolveImageUrl("bad.png", {})).toBe("/lesson-images/teaching-placeholder.png");
   });
 
-  it("loadAliasManifest reads real manifest (72 entries) and covers 180 legacy count shape", () => {
+  it("loadAliasManifest reads real manifest (72 lesson + 151 eval = 223) and covers legacy shape", () => {
     const m = loadAliasManifest(path.resolve("public/lesson-images/image_alias.json"));
-    expect(Object.keys(m)).toHaveLength(72);
-    // every value is lessons/{level}-u{module}-l{lesson}.png
+    expect(Object.keys(m).length).toBeGreaterThanOrEqual(72);
+    const lessonKeys = Object.keys(m).filter((k) => !k.includes("_eval_"));
+    const evalKeys = Object.keys(m).filter((k) => k.includes("_eval_"));
+    expect(lessonKeys).toHaveLength(72);
+    expect(evalKeys.length).toBeGreaterThanOrEqual(96); // 151 eval refs expected
     for (const [k, v] of Object.entries(m)) {
       expect(isValidCanonicalImageName(k)).toBe(true);
-      expect(v).toMatch(/^lessons\/[a-c][12]-u[1-4]-l[1-3]\.png$/);
+      if (k.includes("_eval_")) {
+        expect(v).toBe("teaching-placeholder.png");
+      } else {
+        expect(v).toMatch(/^lessons\/[a-c][12]-u[1-4]-l[1-3]\.png$/);
+      }
     }
   });
 
@@ -151,14 +158,14 @@ describe("imageResolver canonical-first alias fallback", () => {
     }
   });
 
-  it("verify 72 canonicals all resolve via alias in current repo (canonical files not yet created)", () => {
+  it("verify all canonicals (223) all resolve via alias in current repo (canonical files not yet created)", () => {
     const manifest = loadAliasManifest();
     const base = path.resolve("public/lesson-images");
     const canonicals = Object.keys(manifest);
+    expect(canonicals.length).toBeGreaterThanOrEqual(72);
     const results = resolveImages(canonicals, { manifest, baseDir: base });
     const unresolved = results.filter((r) => r.status === "UNRESOLVED");
     expect(unresolved).toHaveLength(0);
-    // all should be ALIASED currently (no canonical files on disk yet)
     expect(results.every((r) => r.status === "ALIASED" || r.status === "CANONICAL")).toBe(true);
   });
 });

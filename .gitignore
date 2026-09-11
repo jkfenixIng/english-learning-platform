@@ -46,3 +46,6 @@ pnpm-debug.log*
 coverage/
 .playwright/
 test-results/
+
+# Curriculum quarantine — B/C quiz truncation logs (PR4-5), not for commit
+quarantine/

@@ -340,24 +340,29 @@ Notas: `User.role` default es `student` (`prisma/schema.prisma`). Middleware pro
 
 ## 📜 Scripts
 
-| Script          | Command                                | What it does                                                   |
-| --------------- | -------------------------------------- | -------------------------------------------------------------- |
-| `dev`           | `next dev`                             | Start dev server with HMR                                      |
-| `build`         | `next build`                           | Production build (Vercel runs `prisma generate && next build`) |
-| `start`         | `next start`                           | Serve production build                                         |
-| `lint`          | `eslint .`                             | Lint entire repo                                               |
-| `lint:fix`      | `eslint . --fix`                       | Lint + auto-fix                                                |
-| `format`        | `prettier --write .`                   | Format with Prettier + tailwind plugin                         |
-| `format:check`  | `prettier --check .`                   | CI format check                                                |
-| `typecheck`     | `tsc --noEmit`                         | Strict type check                                              |
-| `test`          | `vitest run`                           | Run Vitest suite once                                          |
-| `test:watch`    | `vitest`                               | Watch mode                                                     |
-| `seed`          | `tsx prisma/seed.ts`                   | Idempotent catalog seed (A1-C2)                                |
-| `check-i18n`    | `tsx scripts/check-i18n.ts`            | Verify `en`/`es` keys are in sync                              |
-| `db:generate`   | `prisma generate`                      | Regenerate Prisma Client                                       |
-| `db:migrate`    | `prisma migrate dev`                   | Create & apply migration (dev)                                 |
-| `db:deploy`     | `prisma migrate deploy`                | Apply migrations (prod/CI)                                     |
-| `admin:promote` | `tsx scripts/promote-admin.ts <email>` | Promote user to admin by email (`--demote` to revert)          |
+| Script                        | Command                                                          | What it does                                                                                |
+| ----------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `dev`                         | `next dev`                                                       | Start dev server with HMR                                                                   |
+| `build`                       | `next build`                                                     | Production build (Vercel runs `prisma generate && next build`)                              |
+| `start`                       | `next start`                                                     | Serve production build                                                                      |
+| `lint`                        | `eslint .`                                                       | Lint entire repo                                                                            |
+| `lint:fix`                    | `eslint . --fix`                                                 | Lint + auto-fix                                                                             |
+| `format`                      | `prettier --write .`                                             | Format with Prettier + tailwind plugin                                                      |
+| `format:check`                | `prettier --check .`                                             | CI format check                                                                             |
+| `typecheck`                   | `tsc --noEmit`                                                   | Strict type check                                                                           |
+| `test`                        | `vitest run`                                                     | Run Vitest suite once                                                                       |
+| `test:watch`                  | `vitest`                                                         | Watch mode                                                                                  |
+| `seed`                        | `tsx prisma/seed.ts`                                             | Idempotent catalog seed (A1-C2) — `CURRICULUM_MODE=legacy` (188) vs `prd_strict` (72/72/24) |
+| `curriculum:generate`         | `tsx scripts/curriculum-generate.ts --mode prd_strict --seed 42` | Generate PRD strict curriculum 72/72/24, Zod validate, hash stable                          |
+| `curriculum:audit`            | `tsx scripts/curriculum-audit.ts --mode prd_strict --seed 42`    | Audit 24 evals 15Q 4/6/5 + reading 96/144/120 totals                                        |
+| `curriculum:verify-images`    | `tsx scripts/curriculum-verify-images.ts --mode prd_strict`      | Verify 72 lesson aliases +151 eval refs via placeholder fallback                            |
+| `curriculum:idempotency`      | `tsx scripts/curriculum-idempotency.ts`                          | Run generate twice, assert 0 diff & hash stable (REQ-VAL-002)                               |
+| `curriculum:migrate-progress` | `tsx scripts/migrate-progress.ts --dry-run`                      | Map legacy 188 → prd 72, handle pruned units/lessons & exam orderIndex                      |
+| `check-i18n`                  | `tsx scripts/check-i18n.ts`                                      | Verify `en`/`es` keys are in sync                                                           |
+| `db:generate`                 | `prisma generate`                                                | Regenerate Prisma Client                                                                    |
+| `db:migrate`                  | `prisma migrate dev`                                             | Create & apply migration (dev)                                                              |
+| `db:deploy`                   | `prisma migrate deploy`                                          | Apply migrations (prod/CI)                                                                  |
+| `admin:promote`               | `tsx scripts/promote-admin.ts <email>`                           | Promote user to admin by email (`--demote` to revert)                                       |
 
 ---
 

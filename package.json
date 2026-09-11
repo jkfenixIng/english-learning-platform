@@ -20,6 +20,8 @@
     "curriculum:generate": "tsx scripts/curriculum-generate.ts",
     "curriculum:audit": "tsx scripts/curriculum-audit.ts",
     "curriculum:backfill-ipa": "tsx scripts/backfill-ipa.ts",
+    "curriculum:idempotency": "tsx scripts/curriculum-idempotency.ts",
+    "curriculum:migrate-progress": "tsx scripts/migrate-progress.ts --dry-run",
     "check-i18n": "tsx scripts/check-i18n.ts",
     "admin:promote": "tsx scripts/promote-admin.ts",
     "db:generate": "prisma generate",
