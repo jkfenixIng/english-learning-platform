@@ -137,3 +137,9 @@ export function lessonKindBadgeClasses(kind: LessonKind): string {
       return "bg-gray-100 text-gray-700";
   }
 }
+
+export const IPA_PATTERN = /^\/.+\/$/;
+
+export function isValidIPA(ipa: string | null | undefined): boolean {
+  return typeof ipa === "string" && IPA_PATTERN.test(ipa);
+}

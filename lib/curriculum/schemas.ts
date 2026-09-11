@@ -147,6 +147,33 @@ export function assertEvaluationDistribution(questions: { category: string }[]):
   }
 }
 
+// --- IPA helpers for REQ-LES-002 ---
+export function isValidIPAValue(value: string): boolean {
+  return ipaRegex.test(value);
+}
+
+export function validateVocabIPAForMode(
+  vocab: { word: string; ipa?: string | null }[],
+  mode: "legacy" | "prd_strict",
+): { valid: boolean; errors: string[] } {
+  if (mode !== "prd_strict") return { valid: true, errors: [] };
+  const errors: string[] = [];
+  for (const v of vocab) {
+    if (!v.ipa || !ipaRegex.test(v.ipa)) {
+      errors.push(`${CurriculumErrorCode.MISSING_IPA}: word="${v.word}"`);
+    }
+  }
+  return { valid: errors.length === 0, errors };
+}
+
+export function assertVocabIPAForMode(
+  vocab: { word: string; ipa?: string | null }[],
+  mode: "legacy" | "prd_strict",
+): void {
+  const { valid, errors } = validateVocabIPAForMode(vocab, mode);
+  if (!valid) throw new Error(errors.join("; "));
+}
+
 // --- Curriculum counts validator ---
 export function assertCurriculumCounts(args: {
   lessons: number;
