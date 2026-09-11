@@ -113,6 +113,8 @@ export const EvaluationQuestionSchema = z.object({
   type: z.string().min(1),
   prompt: z.string().min(1),
   answer: z.string().optional(),
+  image_ref: ImageRefSchema.optional(),
+  evaluationSlot: z.number().int().min(0).max(14).optional(),
 });
 
 export const EvaluationSchema = z
