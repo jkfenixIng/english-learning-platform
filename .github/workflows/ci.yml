@@ -18,3 +18,12 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm test --if-present
+      - name: Curriculum gates (PRD strict + legacy)
+        run: |
+          npx tsx scripts/curriculum-verify-images.ts --mode prd_strict
+          npx tsx scripts/curriculum-verify-images.ts --mode legacy
+          npx tsx scripts/curriculum-audit.ts --mode prd_strict --seed 42
+          npx tsx scripts/curriculum-generate.ts --mode prd_strict --seed 42 --out /tmp/prd-a.json
+          npx tsx scripts/curriculum-generate.ts --mode prd_strict --seed 42 --out /tmp/prd-b.json
+          diff /tmp/prd-a.json /tmp/prd-b.json && echo "[curriculum:idempotency] hash stable"
+          npx tsx scripts/migrate-progress.ts --dry-run
